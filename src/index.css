@@ -1,11 +1,17 @@
+@import url("https://fonts.googleapis.com/css2?family=Rammetto+One&display=swap");
 @import "tailwindcss";
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+@font-face {
+  font-family: "Pretendard Variable";
+  src: url("./assets/fonts/PretendardVariable.woff2") format("woff2");
+  font-weight: 45 920;
+  font-style: normal;
 }
 
 body {
-  background-color: #fff;
+  font-family: "Pretendard Variable", sans-serif;
+}
+
+.logo-font {
+  font-family: "Rammetto One", cursive;
 }
