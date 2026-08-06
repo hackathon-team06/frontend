@@ -32,11 +32,11 @@ export default function OnboardingLoading() {
 
     return (
         <div className="relative w-[390px] h-[844px]">
-            <img src={phone} className="mt-2" />
+            <img src={phone} alt="" className="mt-2" />
             {FLOATING_ICONS.map((icon) => (
-                <img key={icon.className} src={icon.src} className={`absolute ${icon.className}`} />
+                <img key={icon.className} src={icon.src} alt="" className={`absolute ${icon.className}`} />
             ))}
-            <img src={loadingMascot} className="absolute left-[144px] top-[288px] w-[96px] h-[124px]" />
+            <img src={loadingMascot} alt="" className="absolute left-[144px] top-[288px] w-[96px] h-[124px]" />
             <p className="absolute left-0 top-[500px] w-[390px] text-center text-[24px] font-semibold text-black">
                 오늘의 미션을 준비하고 있어요!
             </p>

@@ -16,7 +16,7 @@ export function ListOptions({ question, selectedId, onSelect }) {
                     key={option.id}
                     type="button"
                     onClick={() => onSelect(option.id)}
-                    style={{ height: `${question.rowHeight}px` }}
+                    style={{ height: `${question.rowHeight ?? 68}px` }}
                     className={`w-[352px] rounded-[12px] bg-white border-2 cursor-pointer
                         flex items-center justify-between pl-[15px] pr-[19px]
                         ${selectedId === option.id ? "border-[#65DBBE]" : "border-[#F0F0F0]"}`}
@@ -79,6 +79,7 @@ export function GridOptions({ question, selectedId, onSelect }) {
                 >
                     <img
                         src={option.icon}
+                        alt=""
                         className="absolute left-1/2 -translate-x-1/2"
                         style={{ top: `${option.iconTop}px`, width: `${option.iconSize}px`, height: `${option.iconSize}px` }}
                     />

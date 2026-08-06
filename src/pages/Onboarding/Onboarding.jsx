@@ -23,6 +23,12 @@ export default function Onboarding() {
         }
     }, [isLoggedIn, navigate]);
 
+    // 문항이 바뀌면 스크롤을 맨 위로 되돌린다. 스크롤 컨테이너(RootLayout의 <main>)는
+    // 문항 전환 시 언마운트되지 않아 이전 문항의 스크롤 위치가 그대로 남는다.
+    useEffect(() => {
+        document.querySelector("main")?.scrollTo({ top: 0 });
+    }, [step]);
+
     if (!isLoggedIn) {
         return null;
     }

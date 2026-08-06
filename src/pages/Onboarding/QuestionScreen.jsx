@@ -10,28 +10,33 @@ export default function QuestionScreen({ question, stepIndex, totalSteps, select
     const buttonTop = question.buttonTop ?? 750;
     const mascotTop = question.mascotTop ?? 84;
     const arrowTop = question.arrowTop ?? 126;
+    const titleTop = question.titleTop ?? 163;
 
     return (
         <div className="relative w-[390px]" style={{ height: `${height}px` }}>
-            <img src={phone} className="mt-2" />
+            <img src={phone} alt="" className="mt-2" />
             {/* 뒤로가기 : 첫 문항에는 없다 */}
             {stepIndex > 0 && (
-                <img
-                    src={backArrow}
+                <button
+                    type="button"
+                    aria-label="이전 문항"
+                    onClick={onBack}
                     className="absolute left-[43px] w-[21px] h-[42px] cursor-pointer"
                     style={{ top: `${arrowTop}px` }}
-                    onClick={onBack}
-                />
+                >
+                    <img src={backArrow} alt="" className="w-[21px] h-[42px]" />
+                </button>
             )}
             <img
                 src={mascot}
+                alt=""
                 className="absolute left-[149px] w-[92px] h-[82px]"
                 style={{ top: `${mascotTop}px` }}
             />
             {/* 문항 제목 */}
             <p
                 className="absolute left-0 w-[390px] px-[30px] text-[24px] font-semibold text-[#0F0F0F] text-center leading-[32px] whitespace-pre-line"
-                style={{ top: `${question.titleTop}px` }}
+                style={{ top: `${titleTop}px` }}
             >
                 {question.title}
             </p>
