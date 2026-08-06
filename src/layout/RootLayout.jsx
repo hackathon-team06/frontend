@@ -4,7 +4,7 @@ import { useLocation } from "react-router-dom";
 import Footer from "../components/footer/Footer";
 
 // 하단 탭바를 숨길 경로 목록
-const HIDE_FOOTER = ["/", "/register"];
+const HIDE_FOOTER = ["/", "/register", "/onboarding"];
 
 export default function RootLayout() {
 
