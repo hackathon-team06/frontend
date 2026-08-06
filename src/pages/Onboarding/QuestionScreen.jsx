@@ -2,7 +2,7 @@ import phone from "../../assets/images/phone.svg";
 import mascot from "../../assets/images/onboarding_mascot.png";
 import backArrow from "../../assets/icons/back_arrow.svg";
 
-import { ListOptions } from "./OptionGroups";
+import { ListOptions, DetailOptions } from "./OptionGroups";
 
 export default function QuestionScreen({ question, stepIndex, totalSteps, selectedId, onSelect, onBack, onNext }) {
 
@@ -46,6 +46,9 @@ export default function QuestionScreen({ question, stepIndex, totalSteps, select
             </div>
             {question.type === "list" && (
                 <ListOptions question={question} selectedId={selectedId} onSelect={onSelect} />
+            )}
+            {question.type === "detail" && (
+                <DetailOptions question={question} selectedId={selectedId} onSelect={onSelect} />
             )}
             {/* 하단 버튼 : 답을 고르기 전에는 비활성 */}
             <button
