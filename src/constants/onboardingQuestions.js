@@ -1,3 +1,10 @@
+import moistSkinIcon from "../assets/images/onboarding_motivation/moist_skin.png";
+import calmTroubleIcon from "../assets/images/onboarding_motivation/calm_trouble.png";
+import hydrationIcon from "../assets/images/onboarding_motivation/hydration.png";
+import nutritionIcon from "../assets/images/onboarding_motivation/nutrition.png";
+import homeHabitIcon from "../assets/images/onboarding_motivation/home_habit.png";
+import ddayIcon from "../assets/images/onboarding_motivation/dday.png";
+
 // 문항을 추가하려면 이 배열에 항목을 하나 넣는다. 컴포넌트는 건드리지 않아도 된다.
 export const ONBOARDING_QUESTIONS = [
     {
@@ -107,12 +114,12 @@ export const ONBOARDING_QUESTIONS = [
         mascotTop: 66,
         arrowTop: 112,
         options: [
-            { id: "moist_skin", label: "촉촉한 피부", iconSize: 28, iconTop: 21 },
-            { id: "calm_trouble", label: "트러블/열감 진정", iconSize: 33, iconTop: 16 },
-            { id: "hydration", label: "수분 챙기기", iconSize: 28, iconTop: 29 },
-            { id: "nutrition", label: "영양 챙기기", iconSize: 40, iconTop: 16 },
-            { id: "home_habit", label: "귀가 후 습관 형성", iconSize: 41, iconTop: 14 },
-            { id: "dday", label: "D-DAY 약속", iconSize: 40, iconTop: 18 },
+            { id: "moist_skin", label: "촉촉한 피부", icon: moistSkinIcon, iconSize: 28, iconTop: 21 },
+            { id: "calm_trouble", label: "트러블/열감 진정", icon: calmTroubleIcon, iconSize: 33, iconTop: 16 },
+            { id: "hydration", label: "수분 챙기기", icon: hydrationIcon, iconSize: 28, iconTop: 29 },
+            { id: "nutrition", label: "영양 챙기기", icon: nutritionIcon, iconSize: 40, iconTop: 16 },
+            { id: "home_habit", label: "귀가 후 습관 형성", icon: homeHabitIcon, iconSize: 41, iconTop: 14 },
+            { id: "dday", label: "D-DAY 약속", icon: ddayIcon, iconSize: 40, iconTop: 18 },
         ],
     },
 ];
