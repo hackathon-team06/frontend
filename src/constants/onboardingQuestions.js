@@ -81,16 +81,23 @@ export const ONBOARDING_QUESTIONS = [
         ],
     },
     {
-        id: "outing",
+        // 선택지가 7개라 기본 844px 프레임에 안 들어간다. 시안(mvp1-3, 390×958)에 맞춰
+        // height와 buttonTop을 함께 지정한다.
+        id: "commute",
         type: "list",
-        title: "다음 중 정기적으로\n외출하는 횟수을 골라주세요",
+        title: "다음 중 평균적으로 들어오는\n귀가 시간을 골라주세요",
         titleTop: 166,
         rowHeight: 68,
+        height: 958,
+        buttonTop: 864,
         options: [
-            { id: "weekly_1", label: "주 1회" },
-            { id: "weekly_2_3", label: "주 2~3회" },
-            { id: "weekly_4_5", label: "주 4~5회" },
-            { id: "weekly_5_over", label: "주 5회 이상" },
+            { id: "6", label: "6시" },
+            { id: "7", label: "7시" },
+            { id: "8", label: "8시" },
+            { id: "9", label: "9시" },
+            { id: "10", label: "10시" },
+            { id: "11", label: "11시" },
+            { id: "12", label: "12시" },
         ],
     },
     {
