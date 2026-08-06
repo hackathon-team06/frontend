@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import loginVisual from "../../assets/images/login_visual.png";
 import { TEST_ACCOUNT } from "../../constants/auth";
 import useAuthStore from "../../store/authStore";
+import useOnboardingStore from "../../store/onboardingStore";
 
 function LoginInput({ type, name, autoComplete, placeholder, value, onChange }) {
     return (
@@ -24,6 +25,7 @@ export default function Main() {
 
     const navigate = useNavigate();
     const login = useAuthStore((state) => state.login);
+    const hasCompletedOnboarding = useOnboardingStore((state) => state.hasCompletedOnboarding);
 
     const [id, setId] = useState("");
     const [password, setPassword] = useState("");
@@ -40,7 +42,7 @@ export default function Main() {
 
         setError("");
         login(id);
-        navigate("/home");
+        navigate(hasCompletedOnboarding ? "/home" : "/onboarding");
     };
 
     return (

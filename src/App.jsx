@@ -6,6 +6,7 @@ import Mission from "./pages/Mission/Mission";
 import Product from "./pages/Product/Product";
 import Mypage from "./pages/Mypage/Mypage";
 import Register from "./pages/Register/Register";
+import Onboarding from "./pages/Onboarding/Onboarding";
 
 function App() {
   return (
@@ -18,6 +19,7 @@ function App() {
           <Route path="/product" element={<Product />} />
           <Route path="/mypage" element={<Mypage />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/onboarding" element={<Onboarding />} />
         </Route>
       </Routes>
     </BrowserRouter>
