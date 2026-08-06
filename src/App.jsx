@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-
+import Main from "./pages/Main/Main";
 import RootLayout from "./layout/RootLayout";
 import Home from "./pages/Home/Home";
 import Mission from "./pages/Mission/Mission";
@@ -12,7 +12,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route element={<RootLayout />}>
-          <Route path="/" element={<Home />} />
+          <Route path="/" element={<Main />} />
           <Route path="/home" element={<Home />} />
           <Route path="/mission" element={<Mission />} />
           <Route path="/product" element={<Product />} />
