@@ -10,6 +10,8 @@ import MissionButton from "../../components/common/MissionButton/MissionButton";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 
+import RecordModal from "../../components/common/RecordModal/RecordModal";
+
 const week = [
   { day: "월", checked: true },
   { day: "화", checked: true },
@@ -142,6 +144,7 @@ export default function Home() {
         title="미션 수락하기"
         onClick={() => navigate("/mission")}
       />
+      {isModalOpen && <RecordModal onClose={() => setIsModalOpen(false)} />}
     </div>
   );
 }
