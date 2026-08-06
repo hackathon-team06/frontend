@@ -3,12 +3,15 @@ import { useNavigate } from "react-router-dom";
 
 import { ONBOARDING_QUESTIONS } from "../../constants/onboardingQuestions";
 import useAuthStore from "../../store/authStore";
+import useOnboardingStore from "../../store/onboardingStore";
 import QuestionScreen from "./QuestionScreen";
+import OnboardingLoading from "./OnboardingLoading";
 
 export default function Onboarding() {
 
     const navigate = useNavigate();
     const isLoggedIn = useAuthStore((state) => state.isLoggedIn);
+    const completeOnboarding = useOnboardingStore((state) => state.completeOnboarding);
 
     const [step, setStep] = useState(0);
     const [answers, setAnswers] = useState({});
@@ -26,11 +29,19 @@ export default function Onboarding() {
 
     const question = ONBOARDING_QUESTIONS[step];
 
+    if (step >= ONBOARDING_QUESTIONS.length) {
+        return <OnboardingLoading />;
+    }
+
     const handleSelect = (optionId) => {
         setAnswers({ ...answers, [question.id]: optionId });
     };
 
     const handleNext = () => {
+        // 마지막 문항이면 답변을 저장하고 로딩 화면으로 넘어간다
+        if (step === ONBOARDING_QUESTIONS.length - 1) {
+            completeOnboarding({ ...answers });
+        }
         setStep(step + 1);
     };
 
