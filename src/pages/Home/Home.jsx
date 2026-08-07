@@ -2,12 +2,15 @@ import checkIcon from "../../assets/icons/check_icon.svg";
 import uncheckIcon from "../../assets/icons/uncheck_icon.svg";
 import map from "../../assets/images/map.svg";
 import stamp from "../../assets/icons/stamp_icon.svg";
+import scheduleIcon from "../../assets/icons/schedule_icon.svg";
 
 import MissionButton from "../../components/common/MissionButton/MissionButton";
 import RecordModal from "../../components/common/RecordModal/RecordModal";
 
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+
+import useScheduleStore from "../../store/useScheduleStore";
 
 const week = [
   { day: "월", checked: true },
@@ -31,6 +34,31 @@ const periodnumbers = [
   { number: 13, className: "top-[335px] left-[230px]" },
 ];
 
+{/* 마지막 글자에 받침이 있는지 확인하는 함수 */}
+const hasFinalConsonant = (word) => {
+  const lastChar = word[word.length - 1];
+
+  // 한글이 아니면 받침 없음
+  if (!/[가-힣]/.test(lastChar)) return false;
+
+  const code = lastChar.charCodeAt(0) - 0xac00;
+
+  return code % 28 !== 0;
+};
+
+{/* 일정 문구 생성 함수 */}
+const getScheduleText = (person, schedule) => {
+  
+  if (schedule === "결혼식") {
+    return `${person}의 ${schedule}`;
+  }
+
+  {/* 나머지는 받침에 따라 와/과 자동 선택 */}
+  const particle = hasFinalConsonant(person) ? "과" : "와";
+
+  return `${person}${particle} ${schedule}`;
+};
+
 function PeriodButton({ number, className, onClick, schedule }) {
   return (
     <div className={`absolute ${className} flex flex-col items-center`}>
@@ -38,9 +66,13 @@ function PeriodButton({ number, className, onClick, schedule }) {
         className="w-[60px] h-[60px] rounded-full bg-white border-[2px] border-[#DBE7E8] flex items-center justify-center cursor-pointer"
         onClick={onClick}
       >
-        <div className="w-[50px] h-[50px] rounded-full bg-[#DBE7E8] flex items-center justify-center">
-          <p className="text-neutral-400 text-2xl font-semibold">{number}</p>
-        </div>
+        {schedule ? (
+          <img src={scheduleIcon} className="object-contain" />
+        ) : (
+          <div className="w-[50px] h-[50px] rounded-full bg-[#DBE7E8] flex items-center justify-center">
+            <p className="text-neutral-400 text-2xl font-semibold">{number}</p>
+          </div>
+        )}
       </button>
 
       {schedule && (
@@ -64,6 +96,8 @@ export default function Home() {
   const navigate = useNavigate();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const schedules = useScheduleStore((state) => state.schedules); // 등록하기 페이지에서 저장한 스케줄 불러오기
 
   return (
     <div className="relative">
@@ -130,14 +164,25 @@ export default function Home() {
           </div>
         </div>
         {/* 일반 숫자 버튼 */}
-        {periodnumbers.map((number) => (
-          <PeriodButton
-            key={number.number}
-            number={number.number}
-            className={number.className}
-            onClick={() => navigate("/register")}
-          />
-        ))}
+        {periodnumbers.map((number) => {
+          const registeredSchedule = schedules.find(
+            (schedule) => schedule.dayNumber === number.number,
+          );
+
+          return (
+            <PeriodButton
+              key={number.number}
+              number={number.number}
+              className={number.className}
+              schedule={registeredSchedule}
+              onClick={() =>
+                navigate("/register", {
+                  state: { selectedDay: number.number },
+                })
+              }
+            />
+          );
+        })}
         {/* 최종 주기 버튼 : 14일 */}
         <div className="rounded-[50px] w-[90px] h-[90px] bg-white border-[2px] border-[#64DDCD] flex items-center justify-center absolute top-[425px] left-[120px]">
           <div className="w-[80px] h-[80px] rounded-[50px] bg-[#64DDCD] flex justify-center items-center">
