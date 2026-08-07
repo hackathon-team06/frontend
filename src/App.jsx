@@ -7,6 +7,7 @@ import Product from "./pages/Product/Product";
 import Mypage from "./pages/Mypage/Mypage";
 import Register from "./pages/Register/Register";
 import Onboarding from "./pages/Onboarding/Onboarding";
+import Stamp from "./pages/Stamp/Stamp";
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
           <Route path="/mypage" element={<Mypage />} />
           <Route path="/register" element={<Register />} />
           <Route path="/onboarding" element={<Onboarding />} />
+          <Route path="/mypage/stamp" element={<Stamp />} />
         </Route>
       </Routes>
     </BrowserRouter>

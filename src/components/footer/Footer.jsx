@@ -38,9 +38,9 @@ export default function Footer() {
                 </div>
                 {/* 마이페이지 버튼 */}
                 <div className="flex flex-col gap-[7.7px] items-center cursor-pointer" onClick={() => navigate("/mypage")}>
-                    <img src={pathname === "/mypage" ? myActive : myInactive} />
+                    <img src={pathname === "/mypage" || pathname === "/mypage/stamp" ? myActive : myInactive} />
                     <p className={`text-sm font-normal font-['Pretendard_Variable']
-                        ${pathname === "/mypage" ? "text-[#65DBBE]" : "text-[#A8A8A8]"}`}>마이</p>
+                        ${pathname === "/mypage" || pathname === "/mypage/stamp" ? "text-[#65DBBE]" : "text-[#A8A8A8]"}`}>마이</p>
                 </div>
             </div>
         </div>
