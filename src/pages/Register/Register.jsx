@@ -3,6 +3,8 @@ import backButton from "../../assets/images/back_button.svg";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
 
+import useScheduleStore from "../../store/useScheduleStore";
+
 {/* 선택 가능한 옵션 버튼 */}
 function OptionButton({ title, onClick, isSelected }) {
   return (
@@ -67,6 +69,24 @@ export default function Register() {
   const dayList = ["일", "월", "화", "수", "목", "금", "토"];
   const day = dayList[selectedDate.getDay()];
 
+  const addSchedule = useScheduleStore((state) => state.addSchedule);
+
+  {/* 등록하기 함수 */}
+  const handleRegister = () => {
+    if (!selectedPerson || !selectedSchedule) {
+      alert("사람과 일정 옵션을 모두 선택해주세요!");
+      return;
+    }
+
+    addSchedule({
+      dayNumber: selectedDay,
+      person: selectedPerson,
+      schedule: selectedSchedule,
+    });
+
+    navigate("/home");
+  };
+
   return (
     <div>
       <img
@@ -130,7 +150,7 @@ export default function Register() {
           ))}
         </section>
       </main>
-      <RegisterButton onClick={() => navigate("/home")} />
+      <RegisterButton onClick={handleRegister} />
     </div>
   );
 }
