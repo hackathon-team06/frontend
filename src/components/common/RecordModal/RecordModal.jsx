@@ -3,16 +3,16 @@ import prevButton from "../../../assets/images/prev_button.svg";
 import { records } from "../../../constants/recordData";
 import { useState } from "react";
 
-export default function RecordModal({ onClose }) {
+export default function RecordModal({ onClose, recordList = records, date }) {
   const [page, setPage] = useState(0);
 
-  const record = records[page];
+  const record = recordList[page];
 
-  const recordDate = new Date(); // 오늘 날짜
+  const recordDate = new Date();
   recordDate.setDate(recordDate.getDate() - 2);
 
-  {/* 오늘이 4일차이기 때문에 4일차 기준 이틀 전으로 날짜 표시 */}
-  const showingDate = `${recordDate.getMonth() + 1}/${recordDate.getDate()}`;
+  const showingDate =
+    date ?? `${recordDate.getMonth() + 1}/${recordDate.getDate()}`;
 
   return (
     <div
@@ -23,7 +23,7 @@ export default function RecordModal({ onClose }) {
         className="relative flex items-center gap-2"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* 이전 버튼 */}
+        {/* 저녁 일지 : 이전 버튼을 누르면 아침 일지로 이동 */}
         {page === 1 && (
           <img
             src={prevButton}
@@ -32,7 +32,6 @@ export default function RecordModal({ onClose }) {
           />
         )}
 
-        {/* 모달 */}
         <div className="w-[306px] h-[370px] rounded-2xl bg-white outline-[3px] outline-[#78BAA9] outline-offset-[-1.5px]">
           <main className="flex flex-col">
             <header className="flex justify-between">
@@ -45,6 +44,7 @@ export default function RecordModal({ onClose }) {
             <p className="mt-9 ml-[14px] mr-[14px] whitespace-pre-line text-base font-semibold leading-5 text-stone-950">
               {record.description}
             </p>
+
             {record.missions.map((mission, index) => (
               <p
                 key={index}
@@ -55,7 +55,7 @@ export default function RecordModal({ onClose }) {
             ))}
           </main>
         </div>
-        {/* 다음 버튼 */}
+        {/* 아침 일지 : 다음 버튼을 누르면 저녁 일지로 이동 */}
         {page === 0 && (
           <img
             src={nextButton}
