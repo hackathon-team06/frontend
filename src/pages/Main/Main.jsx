@@ -1,25 +1,8 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import loginVisual from "../../assets/images/login_visual.png";
-import { TEST_ACCOUNT } from "../../constants/auth";
 import useAuthStore from "../../store/authStore";
 import useOnboardingStore from "../../store/onboardingStore";
-
-function LoginInput({ type, name, autoComplete, placeholder, value, onChange }) {
-    return (
-        <input
-            type={type}
-            name={name}
-            autoComplete={autoComplete}
-            placeholder={placeholder}
-            value={value}
-            onChange={onChange}
-            className="w-[360px] h-[60px] bg-white border border-[#C3C3C3] rounded-[28px] px-[15px] outline-none
-                text-[14px] font-medium text-stone-950 placeholder:text-[#A8A8A8]"
-        />
-    );
-}
 
 export default function Main() {
 
@@ -27,21 +10,10 @@ export default function Main() {
     const login = useAuthStore((state) => state.login);
     const hasCompletedOnboarding = useOnboardingStore((state) => state.hasCompletedOnboarding);
 
-    const [id, setId] = useState("");
-    const [password, setPassword] = useState("");
-    const [error, setError] = useState("");
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-
-        // 빈 값으로 제출한 경우도 불일치와 같은 메시지로 처리한다
-        if (id !== TEST_ACCOUNT.id || password !== TEST_ACCOUNT.password) {
-            setError("아이디 또는 비밀번호가 일치하지 않습니다.");
-            return;
-        }
-
-        setError("");
-        login(id);
+    // 시연용 로그인. 백엔드 로그인 API가 붙으면 여기서 요청을 보내고
+    // 응답으로 받은 사용자 정보를 login()에 넘기도록 바꾼다.
+    const handleTestLogin = () => {
+        login("test");
         navigate(hasCompletedOnboarding ? "/home" : "/onboarding");
     };
 
@@ -51,16 +23,18 @@ export default function Main() {
             <div className="w-[390px] h-[550px] overflow-hidden">
                 <img src={loginVisual} alt="" className="w-[390px]" />
             </div>
-            {/* 로그인 폼 */}
-            <form className="flex flex-col items-center gap-[11px] mt-[10px]" onSubmit={handleSubmit}>
-                <LoginInput type="text" name="username" autoComplete="username" placeholder="아이디" value={id} onChange={(e) => setId(e.target.value)} />
-                <LoginInput type="password" name="password" autoComplete="current-password" placeholder="비밀번호" value={password} onChange={(e) => setPassword(e.target.value)} />
-                <button type="submit" className="w-[360px] h-[60px] bg-[#63D7BB] rounded-[28px] cursor-pointer
-                    text-white text-[20px] font-medium">
-                    로그인하기
+            {/* 입력 없이 버튼 하나로 테스트 계정에 진입한다 */}
+            <div className="flex justify-center mt-[190px]">
+                <button
+                    type="button"
+                    onClick={handleTestLogin}
+                    className="w-[352px] h-[56px] bg-white border-2 border-[#65DBBE] rounded-[28px] cursor-pointer
+                        shadow-[0px_3px_1px_0px_rgba(88,206,174,0.25)]
+                        text-[18px] font-semibold text-[#65DBBE]"
+                >
+                    테스트 계정으로 로그인
                 </button>
-                {error && <p role="alert" className="text-[13px] font-normal text-red-500 mt-[4px]">{error}</p>}
-            </form>
+            </div>
         </div>
     );
 }
