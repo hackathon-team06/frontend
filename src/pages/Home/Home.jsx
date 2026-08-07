@@ -1,16 +1,13 @@
 import checkIcon from "../../assets/icons/check_icon.svg";
 import uncheckIcon from "../../assets/icons/uncheck_icon.svg";
 import map from "../../assets/images/map.svg";
-import day1 from "../../assets/images/day1.svg";
-import day2 from "../../assets/images/day2.svg";
-import day3 from "../../assets/images/day3.svg";
+import stamp from "../../assets/icons/stamp_icon.svg";
 
 import MissionButton from "../../components/common/MissionButton/MissionButton";
+import RecordModal from "../../components/common/RecordModal/RecordModal";
 
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-
-import RecordModal from "../../components/common/RecordModal/RecordModal";
 
 const week = [
   { day: "월", checked: true },
@@ -34,15 +31,23 @@ const periodnumbers = [
   { number: 13, className: "top-[335px] left-[230px]" },
 ];
 
-function PeriodButton({ number, className, onClick }) {
+function PeriodButton({ number, className, onClick, schedule }) {
   return (
-    <div
-      className={`absolute ${className} rounded-[50px] w-[60px] h-[60px] bg-white border-[2px] border-[#DBE7E8] flex items-center justify-center cursor-pointer`}
-      onClick={onClick}
-    >
-      <div className="w-[50px] h-[50px] rounded-[50px] bg-[#DBE7E8] flex justify-center items-center">
-        <p className="text-neutral-400 text-2xl font-semibold">{number}</p>
-      </div>
+    <div className={`absolute ${className} flex flex-col items-center`}>
+      <button
+        className="w-[60px] h-[60px] rounded-full bg-white border-[2px] border-[#DBE7E8] flex items-center justify-center cursor-pointer"
+        onClick={onClick}
+      >
+        <div className="w-[50px] h-[50px] rounded-full bg-[#DBE7E8] flex items-center justify-center">
+          <p className="text-neutral-400 text-2xl font-semibold">{number}</p>
+        </div>
+      </button>
+
+      {schedule && (
+        <p className="mt-[4px] whitespace-nowrap rounded-[4px] border border-[#DAEEFF] bg-white px-[4px]  text-[10px] font-semibold text-stone-950">
+          {getScheduleText(schedule.person, schedule.schedule)}
+        </p>
+      )}
     </div>
   );
 }
@@ -77,7 +82,10 @@ export default function Home() {
           const isToday = item.day === day; // 오늘 요일에 초록 동그라미가 씌워지도록
 
           return (
-            <div className="flex flex-col items-center gap-[5px]">
+            <div
+              key={item.day}
+              className="flex flex-col items-center gap-[5px]"
+            >
               <p
                 className={`flex w-6 h-6 items-center justify-center rounded-full text-sm font-semibold ${isToday ? "bg-[#65DBBE] text-white" : "text-stone-950"}`}
               >
@@ -103,16 +111,16 @@ export default function Home() {
       <main className="relative mt-13 ml-[27px] h-[540px]">
         <img src={map} />
         <img
-          src={day1}
+          src={stamp}
           className="absolute -top-[22px] left-[30px] cursor-pointer"
         />
         <img
-          src={day2}
+          src={stamp}
           className="absolute -top-[22px] left-[130px] cursor-pointer"
           onClick={() => setIsModalOpen(true)}
         />
         <img
-          src={day3}
+          src={stamp}
           className="absolute -top-[22px] left-[230px] cursor-pointer"
         />
         {/* Go 버튼 */}
@@ -127,9 +135,7 @@ export default function Home() {
             key={number.number}
             number={number.number}
             className={number.className}
-            onClick={() =>
-              navigate("/register", { state: { selectedDay: number.number } })
-            }
+            onClick={() => navigate("/register")}
           />
         ))}
         {/* 최종 주기 버튼 : 14일 */}
