@@ -12,11 +12,6 @@ export default function Stamp() {
 
   const calendar = [null, null, null, null, null, ...stampList];
 
-  const totalPoint = stampList.reduce(
-    (sum, item) => sum + (item.point || 0),
-    0,
-  );
-
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleDayClick = (day) => {
@@ -35,8 +30,7 @@ export default function Stamp() {
         onClick={() => navigate("/mypage")}
       />
       <p className="text-black text-2xl font-medium mt-[63px]">5월</p>
-      <div className="mt-[34px] w-80 h-6 relative rounded-3xl outline-1 outline-offset-[-1px] outline-white"></div>
-      <div className="w-90 grid grid-cols-7 items-center">
+      <div className="w-90 grid grid-cols-7 items-center mt-[65px]">
         {week.map((day) => (
           <span
             key={day}
@@ -46,7 +40,7 @@ export default function Stamp() {
           </span>
         ))}
       </div>
-      <div className="grid grid-cols-7 gap-[18px] mt-[19px]">
+      <div className="grid grid-cols-7 gap-x-[18px] gap-y-[30px] mt-[30px]">
         {calendar.map((item, index) =>
           item ? (
             <div
@@ -65,34 +59,37 @@ export default function Stamp() {
           ),
         )}
       </div>
-      <div className="flex gap-[124px] mt-[46px] mb-[30px]">
-        <section className="flex flex-col gap-[11px]">
-          <div className="flex gap-[20px] items-center">
-            <div className="w-4 h-4 rounded-full bg-[#65DBBE]" />
-            <p className="text-stone-950 text-sm font-medium">전체 성공</p>
+      <p className="mt-8 self-end mr-[19px] text-black text-sm font-semibold">총 168개 중 104개 완료</p>
+      {/* 포인트 박스 부분 */}
+      <section className="relative mt-[35px] mb-[84px] w-[352px] h-[114px] bg-white rounded-[10px] shadow-[0px_2px_2px_0px_rgba(149,179,151,0.25)] outline-1 outline-offset-[-1px] outline-teal-300">
+        <div className="flex flex-col mt-4 ml-[10px]">
+          <div className="flex gap-[22px]">
+            <p className="text-stone-950 text-sm font-semibold">일일 포인트</p>
+            <p className="text-[#64DDCD] text-sm font-semibold">+117</p>
           </div>
-          <div className="flex gap-[20px] items-center">
-            <div className="w-4 h-4 rounded-full bg-[#9AFFC1]" />
-            <p className="text-stone-950 text-sm font-medium">일부 성공</p>
+          <div className="flex gap-[22px] mt-[7px]">
+            <p className="text-stone-950 text-sm font-semibold">완료 포인트</p>
+            <p className="text-[#64DDCD] text-sm font-semibold">+41</p>
           </div>
-        </section>
-        <p className="text-black text-sm font-medium">
-          총 얻은 포인트 : {totalPoint}P
-        </p>
-      </div>
-      <p className="self-start text-black text-lg font-medium ml-[22px]">
-        미션 진행도
-      </p>
-      <div className="relative mt-[18px] mb-[50px] w-[354px] h-[24px] outline-1 outline-offset-[-1px] outline-emerald-200 rounded-3xl">
-        <div className="absolute left-0 top-0 w-[177px] h-[24px] bg-gradient-to-r from-emerald-200 to-emerald-300 rounded-3xl">
-          <p className="ml-[7px] mt-[3px] text-white text-xs font-medium">
-            46%
-          </p>
+          <div className="w-[148px] h-[1px] bg-[#C3C3C3] mt-[14px]" />
+          <p className="mt-[10px] text-stone-950 text-sm font-semibold">총 얻은 포인트 : <span className="text-teal-300 text-sm font-semibold">158</span>P</p>
         </div>
-        <p className="absolute right-0 top-0 text-black text-sm font-medium mr-[10px] mt-[2px]">
-          13/28
-        </p>
-      </div>
+        {/* 전부 성공 */}
+        <div className="absolute right-5 bottom-[59px] flex gap-2 items-center">
+          <div className="size-3 bg-teal-300 rounded-full" />
+          <p className="text-stone-950 text-xs font-medium">전부 성공</p>
+        </div>
+        {/* 일부 성공 */}
+        <div className="absolute right-5 bottom-[35px] flex gap-2 items-center">
+          <div className="size-3 bg-[#A0F8E2] rounded-full" />
+          <p className="text-stone-950 text-xs font-medium">일부 성공</p>
+        </div>
+        {/* 미참여 */}
+        <div className="absolute right-[33px] bottom-[11px] flex gap-2 items-center">
+          <div className="size-3 bg-[#DBE7E8] rounded-full" />
+          <p className="text-[#777777] text-xs font-medium">미참여</p>
+        </div>
+      </section>
       {isModalOpen && (
         <RecordModal
           recordList={stampRecords}
