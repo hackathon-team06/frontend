@@ -1,7 +1,7 @@
 import checkIcon from "../../assets/icons/check_icon.svg";
 import uncheckIcon from "../../assets/icons/uncheck_icon.svg";
 import map from "../../assets/images/map.svg";
-import stamp from "../../assets/icons/stamp_icon.svg";
+import stamp from "../../assets/images/home_stamp.svg";
 import scheduleIcon from "../../assets/icons/schedule_icon.svg";
 
 import MissionButton from "../../components/common/MissionButton/MissionButton";
