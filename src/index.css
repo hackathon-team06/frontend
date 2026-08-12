@@ -1,1 +1,45 @@
+@import url("https://fonts.googleapis.com/css2?family=Rammetto+One&display=swap");
 @import "tailwindcss";
+
+@font-face {
+  font-family: "Pretendard Variable";
+  src: url("./assets/fonts/PretendardVariable.woff2") format("woff2");
+  font-weight: 45 920;
+  font-style: normal;
+}
+
+body {
+  font-family: "Pretendard Variable", sans-serif;
+}
+
+.logo-font {
+  font-family: "Rammetto One", cursive;
+}
+
+@layer utilities {
+  /* 스크롤바 숨기기 */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+}
+/* 밑에서 빠르게 올라오는 slide-up animate */
+@layer utilities {
+  @keyframes slide-up {
+    from {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.35s ease-out;
+  }
+}
