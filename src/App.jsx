@@ -6,6 +6,7 @@ import Onboarding from "./pages/Onboarding/Onboarding";
 import Result from "./pages/Onboarding/Result";
 import Complete from "./pages/Onboarding/Complete";
 import RoutineSetting from "./pages/Onboarding/RoutineSetting";
+import Product from "./pages/Product/Product";
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
           <Route path="/onboarding/:skinType" element={<Result />} />
           <Route path="/onboarding/complete" element={<Complete />} />
           <Route path="/onboarding/routine-setting" element={<RoutineSetting />} />
+          <Route path="/product" element={<Product />} />
         </Route>
       </Routes>
     </BrowserRouter>
