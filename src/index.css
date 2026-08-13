@@ -1,1 +1,80 @@
+@import url("https://fonts.googleapis.com/css2?family=Rammetto+One&display=swap");
 @import "tailwindcss";
+
+@font-face {
+  font-family: "Pretendard Variable";
+  src: url("./assets/fonts/PretendardVariable.woff2") format("woff2");
+  font-weight: 45 920;
+  font-style: normal;
+}
+
+body {
+  font-family: "Pretendard Variable", sans-serif;
+}
+
+.logo-font {
+  font-family: "Rammetto One", cursive;
+}
+
+@layer utilities {
+  /* 스크롤바 숨기기 */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* 로그인 화면 캐릭터 애니메이션 */
+@theme {
+  --animate-character: character 4.2s linear infinite;
+
+  @keyframes character {
+    0% {
+      transform: translate(-100px, 0) rotate(0deg);
+    }
+
+    10% {
+      transform: translate(-55px, -6px) rotate(-2deg);
+    }
+
+    20% {
+      transform: translate(-10px, 0) rotate(2deg);
+    }
+
+    30% {
+      transform: translate(35px, -6px) rotate(-2deg);
+    }
+
+    40% {
+      transform: translate(80px, 0) rotate(2deg);
+    }
+
+    50% {
+      transform: translate(125px, -6px) rotate(-2deg);
+    }
+
+    60% {
+      transform: translate(170px, 0) rotate(2deg);
+    }
+
+    70% {
+      transform: translate(215px, -6px) rotate(-2deg);
+    }
+
+    80% {
+      transform: translate(260px, 0) rotate(2deg);
+    }
+
+    90% {
+      transform: translate(325px, -6px) rotate(-2deg);
+    }
+
+    100% {
+      transform: translate(420px, 0) rotate(0deg);
+    }
+  }
+}
