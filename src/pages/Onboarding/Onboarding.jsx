@@ -6,7 +6,8 @@ import TimeStep from "./steps/TimeStep";
 import SkinStep from "./steps/SkinStep";
 import PurposeStep from "./steps/PurposeStep";
 import RoutineStep from "./steps/RoutineStep";
-
+import Loading from "./Loading";
+import Result from "./Result";
 
 export default function Onboarding() {
 
@@ -86,6 +87,12 @@ export default function Onboarding() {
           onBack={previousPage}
         />
       );
+
+    case 7:
+      return <Loading onNext={nextPage}/>;
+
+    case 8:
+      return <Result />;
     default:
       return null;
   }

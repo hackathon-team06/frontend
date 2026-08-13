@@ -78,3 +78,44 @@ body {
     }
   }
 }
+
+/* 온보딩 시간 모달 올라오는 애니메이션 */
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes loadingOrbit {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes loadingIconSwap {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(var(--move-x));
+  }
+}
+
+.loading-icon-swap {
+  animation: loadingIconSwap 2.4s ease-in-out infinite alternate;
+}
+
+.loading-moving-icon {
+  transition:
+    top 0.65s ease-in-out,
+    left 0.65s ease-in-out;
+}
