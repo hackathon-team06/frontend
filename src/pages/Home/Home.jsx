@@ -2,6 +2,8 @@ import WeatherTipSection from "../../components/home/WeatherTipSection";
 import WeekCalenderSection from "../../components/home/WeekCalendarSection";
 import MissionNavBar from "../../components/home/MissionNavBar";
 import MissionSection from "../../components/home/MissionSection";
+import IngredientRankSection from "../../components/home/IngredientRankSection";
+import StampProgressBtn from "../../components/home/StampProgressBtn";
 import SetUpCharacterSection from "../../components/home/SetUpCharacterSection";
 import SkinConditionSection from "../../components/home/SkinConditionSection";
 import BigBtn from "../../components/home/BigBtn";
@@ -54,15 +56,24 @@ function Home() {
       <WeekCalenderSection weekData={weekData} today={today} />
       <MissionNavBar activeTab={activeTab} setActiveTab={setActiveTab} />
       {activeTab === "morning" ? (
-        <MissionSection
-          missionData={morningMissions}
-          onClick={(id) => handleMissionCheckBtn(id, setMorningMissions)}
-        />
+        <>
+          <MissionSection
+            missionData={morningMissions}
+            onClick={(id) => handleMissionCheckBtn(id, setMorningMissions)}
+          />
+          <IngredientRankSection />
+          <StampProgressBtn />
+        </>
       ) : isEveningMissionSet ? (
-        <MissionSection
-          missionData={eveningMissions}
-          onClick={(id) => handleMissionCheckBtn(id, setEveningMissions)}
-        />
+        <>
+          {" "}
+          <MissionSection
+            missionData={eveningMissions}
+            onClick={(id) => handleMissionCheckBtn(id, setEveningMissions)}
+          />
+          <IngredientRankSection />
+          <StampProgressBtn />
+        </>
       ) : (
         <>
           <SetUpCharacterSection />
