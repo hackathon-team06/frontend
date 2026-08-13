@@ -18,8 +18,8 @@ export default function RootLayout() {
 
   return (
     <div className="w-full h-screen overflow-hidden bg-gray-100 flex justify-center">
-      <div className="relative w-[390px] h-screen bg-white shadow-lg overflow-hidden">
-        <main className="h-full overflow-y-auto no-scrollbar">
+      <div className="relative flex flex-col w-97.5 h-screen bg-white shadow-lg overflow-hidden">
+        <main className="felx-1 overflow-y-auto no-scrollbar">
           <Outlet />
         </main>
         {!hideFooter && <Footer />}

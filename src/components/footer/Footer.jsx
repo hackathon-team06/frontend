@@ -14,8 +14,8 @@ export default function Footer() {
   const { pathname } = useLocation();
 
   return (
-    <div className="fixed bottom-0 w-[390px] h-20 bg-white rounded-tl-[30px] rounded-tr-[30px] shadow-[0px_-1px_30px_0px_rgba(101,219,190,0.10)]">
-      <div className="flex justify-center items-center mt-[19px] gap-[60px]">
+    <div className="w-full h-20 bg-white rounded-tl-[30px] rounded-tr-[30px] shadow-[0px_-1px_30px_0px_rgba(101,219,190,0.10)]">
+      <div className="flex justify-center items-center mt-4.75 gap-15">
         {/* 홈 버튼 */}
         <div
           className="flex flex-col gap-[7.7px] items-center cursor-pointer"
