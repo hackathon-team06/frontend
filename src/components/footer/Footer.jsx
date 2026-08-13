@@ -29,7 +29,7 @@ export default function Footer() {
             홈
           </p>
         </div>
-        {/* 미션 버튼 */}
+        {/* 스탬프 버튼 */}
         <div
           className="flex flex-col gap-[7.7px] items-center cursor-pointer"
           onClick={() => navigate("/mission")}
@@ -41,7 +41,7 @@ export default function Footer() {
             className={`text-sm font-normal font-['Pretendard_Variable'] -mt-[5px] 
                         ${pathname === "/mission" ? "text-[#65DBBE]" : "text-[#A8A8A8]"}`}
           >
-            미션
+            스탬프
           </p>
         </div>
         {/* 제품 버튼 */}
