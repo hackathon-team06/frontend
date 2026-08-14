@@ -8,6 +8,7 @@ import Result from "./pages/Onboarding/Result";
 import Complete from "./pages/Onboarding/Complete";
 import RoutineSetting from "./pages/Onboarding/RoutineSetting";
 import Product from "./pages/Product/Product";
+import Wishlist from "./pages/Product/Wishlist";
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
             element={<RoutineSetting />}
           />
           <Route path="/product" element={<Product />} />
+          <Route path="/product/wishlist" element={<Wishlist />} />
         </Route>
       </Routes>
     </BrowserRouter>
