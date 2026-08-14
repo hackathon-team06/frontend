@@ -28,8 +28,7 @@ export default function Product() {
     () =>
       PRODUCTS.filter(
         (product) =>
-          product.category === category &&
-          product.skinTypes.includes(skinType),
+          product.category === category && product.skinTypes.includes(skinType),
       ),
     [category, skinType],
   );
@@ -45,7 +44,9 @@ export default function Product() {
           onClick={() => navigate("/product/wishlist")}
           className="flex h-[32px] w-[100px] cursor-pointer items-center justify-between rounded-[26px] border border-ink-100 pl-[9px] pr-[11px]"
         >
-          <span className="text-[16px] font-medium text-ink-900">찜한 상품</span>
+          <span className="text-[16px] font-medium text-ink-900">
+            찜한 상품
+          </span>
           <img src={heartFilled} alt="" className="size-[17px]" />
         </button>
       </header>
@@ -107,7 +108,9 @@ export default function Product() {
 
       {/* 추천 상품 */}
       <section className="px-4">
-        <h2 className="mt-[19px] text-[18px] font-medium text-ink-900">추천 상품</h2>
+        <h2 className="mt-[19px] text-[18px] font-medium text-ink-900">
+          추천 상품
+        </h2>
 
         {products.length === 0 ? (
           <p className="py-[60px] text-center text-[14px] text-ink-500">
@@ -121,6 +124,7 @@ export default function Product() {
                 product={product}
                 liked={likedIds.includes(product.id)}
                 onToggleLike={() => toggleLike(product.id)}
+                onOpen={() => navigate(`/product/${product.id}`)}
               />
             ))}
           </ul>
@@ -130,14 +134,13 @@ export default function Product() {
   );
 }
 
-function ProductCard({ product, liked, onToggleLike }) {
+function ProductCard({ product, liked, onToggleLike, onOpen }) {
   const { name, isBest, price, discountRate, hasOptions, imageUrl } = product;
 
   const pointPrice = getPointPrice(price);
 
   return (
-    // TODO: 카드 클릭 시 상품 상세 화면으로 이동 (다음 작업)
-    <li className="flex flex-col gap-[9px]">
+    <li onClick={onOpen} className="flex cursor-pointer flex-col gap-[9px]">
       <div className="h-[176px] w-full overflow-hidden rounded-[5px] bg-mint-50">
         {imageUrl && (
           <img src={imageUrl} alt="" className="size-full object-cover" />
@@ -187,12 +190,14 @@ function ProductCard({ product, liked, onToggleLike }) {
 
         <button
           type="button"
-          onClick={onToggleLike}
+          onClick={(event) => {
+            event.stopPropagation();
+            onToggleLike();
+          }}
           aria-pressed={liked}
           aria-label={liked ? "찜 해제" : "찜하기"}
           className="flex size-[20px] cursor-pointer items-center justify-center"
         >
-          {/* 채워진 하트와 빈 하트의 원본 크기가 달라 각각 지정합니다. */}
           {liked ? (
             <img src={heartFilled} alt="" className="size-[20px]" />
           ) : (
