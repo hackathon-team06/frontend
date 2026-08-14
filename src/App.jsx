@@ -11,6 +11,8 @@ import Product from "./pages/Product/Product";
 import Wishlist from "./pages/Product/Wishlist";
 import ProductDetail from "./pages/Product/ProductDetail";
 import MissionEdit from "./pages/Home/MissionEdit";
+import MyPage from "./pages/MyPage/MyPage";
+import StampRecord from "./pages/MyPage/StampRecord";
 
 function App() {
   return (
@@ -30,6 +32,8 @@ function App() {
           <Route path="/product/wishlist" element={<Wishlist />} />
           <Route path="/product/:productId" element={<ProductDetail />} />
           <Route path="/edit" element={<MissionEdit />} />
+          <Route path="/mypage" element={<MyPage />} />
+          <Route path="/mypage/stamp/:stampId" element={<StampRecord />} />
         </Route>
       </Routes>
     </BrowserRouter>

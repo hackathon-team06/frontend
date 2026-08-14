@@ -67,15 +67,11 @@ export default function Footer() {
           onClick={() => navigate("/mypage")}
         >
           <img
-            src={
-              pathname === "/mypage" || pathname === "/mypage/stamp"
-                ? myActive
-                : myInactive
-            }
+            src={pathname.startsWith("/mypage") ? myActive : myInactive}
           />
           <p
             className={`text-sm font-normal font-['Pretendard_Variable']
-                        ${pathname === "/mypage" || pathname === "/mypage/stamp" ? "text-[#65DBBE]" : "text-[#A8A8A8]"}`}
+                        ${pathname.startsWith("/mypage") ? "text-[#65DBBE]" : "text-[#A8A8A8]"}`}
           >
             마이
           </p>

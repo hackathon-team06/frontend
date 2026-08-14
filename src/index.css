@@ -5,7 +5,8 @@
    Tailwind 기본 gray-*, green-* 을 덮어쓰지 않도록 mint-*, ink-* 로 이름을 분리했습니다. */
 @theme {
   --color-mint-600: #57c1be; /* 로고, 선택된 피부타입 칩, 포인트 숫자 */
-  --color-mint-500: #65dbbe; /* 포인트 사용가, 활성 탭 */
+  --color-mint-500: #65dbbe; /* 포인트 사용가, 활성 탭, 스탬프 전부 성공 */
+  --color-mint-400: #8be8ae; /* 스탬프 일부 성공 */
   --color-mint-300: #9fedae;
   --color-mint-100: #d1f6c8;
   --color-mint-50: #e1f3f4; /* 상품 이미지 배경 */
