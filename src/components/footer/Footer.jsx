@@ -50,11 +50,13 @@ export default function Footer() {
           onClick={() => navigate("/product")}
         >
           <img
-            src={pathname === "/product" ? productActive : productInactive}
+            src={
+              pathname.startsWith("/product") ? productActive : productInactive
+            }
           />
           <p
             className={`text-sm font-normal font-['Pretendard_Variable']
-                        ${pathname === "/product" ? "text-[#65DBBE]" : "text-[#A8A8A8]"}`}
+                        ${pathname.startsWith("/product") ? "text-[#65DBBE]" : "text-[#A8A8A8]"}`}
           >
             제품
           </p>

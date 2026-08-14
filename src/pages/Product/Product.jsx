@@ -1,23 +1,28 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import useOnboardingStore from "../../store/useOnboardingStore";
+import useWishStore from "../../store/useWishStore";
 import { PRODUCTS, SKIN_TYPES, CATEGORIES } from "../../mocks/products";
+import { MY_POINT, getPointPrice } from "../../constants/product";
+import PointBadge from "../../components/product/PointBadge";
 
 import heartFilled from "../../assets/icons/heart_filled.png";
 import heartOutline from "../../assets/icons/heart_outline.svg";
-import pointBadge from "../../assets/icons/point_badge.svg";
-
-// 보유 포인트. 백엔드 연동 시 API 값으로 교체합니다.
-const MY_POINT = 2179;
 
 export default function Product() {
+  const navigate = useNavigate();
+
   // 온보딩에서 고른 피부 타입을 초기값으로 사용합니다.
   // 온보딩을 건너뛰고 바로 들어온 경우를 위해 "지성"을 폴백으로 둡니다.
   const mySkinType = useOnboardingStore((state) => state.skinType);
 
+  // 찜 상태는 찜한 상품 화면과 공유하므로 스토어에서 가져옵니다.
+  const likedIds = useWishStore((state) => state.likedIds);
+  const toggleLike = useWishStore((state) => state.toggleLike);
+
   const [skinType, setSkinType] = useState(mySkinType || "지성");
   const [category, setCategory] = useState(CATEGORIES[0]);
-  const [likedIds, setLikedIds] = useState([]);
 
   const products = useMemo(
     () =>
@@ -29,22 +34,16 @@ export default function Product() {
     [category, skinType],
   );
 
-  const toggleLike = (id) => {
-    setLikedIds((prev) =>
-      prev.includes(id) ? prev.filter((likedId) => likedId !== id) : [...prev, id],
-    );
-  };
-
   return (
     <div className="flex min-h-full flex-col bg-ink-50">
       {/* 헤더 */}
       <header className="flex items-end justify-between px-[19px] pt-[39px]">
         <h1 className="logo-font text-[22px] text-mint-600">stay care</h1>
 
-        {/* TODO: 찜한 상품 목록 페이지 연결 */}
         <button
           type="button"
-          className="flex h-[32px] w-[100px] items-center justify-between rounded-[26px] border border-ink-100 pl-[9px] pr-[11px]"
+          onClick={() => navigate("/product/wishlist")}
+          className="flex h-[32px] w-[100px] cursor-pointer items-center justify-between rounded-[26px] border border-ink-100 pl-[9px] pr-[11px]"
         >
           <span className="text-[16px] font-medium text-ink-900">찜한 상품</span>
           <img src={heartFilled} alt="" className="size-[17px]" />
@@ -134,8 +133,7 @@ export default function Product() {
 function ProductCard({ product, liked, onToggleLike }) {
   const { name, isBest, price, discountRate, hasOptions, imageUrl } = product;
 
-  // 포인트 사용시 가격 = 판매가 - 보유 포인트
-  const pointPrice = Math.max(0, price - MY_POINT);
+  const pointPrice = getPointPrice(price);
 
   return (
     // TODO: 카드 클릭 시 상품 상세 화면으로 이동 (다음 작업)
@@ -182,12 +180,7 @@ function ProductCard({ product, liked, onToggleLike }) {
               <span className="text-[12px] font-medium leading-[20px] text-mint-500">
                 {pointPrice.toLocaleString()}
               </span>
-              <span className="relative inline-block size-[14px]">
-                <img src={pointBadge} alt="" className="absolute inset-0 size-[14px]" />
-                <span className="absolute inset-0 text-center text-[12px] font-medium leading-[14px] text-mint-300">
-                  s
-                </span>
-              </span>
+              <PointBadge />
             </div>
           </div>
         </div>
@@ -197,13 +190,14 @@ function ProductCard({ product, liked, onToggleLike }) {
           onClick={onToggleLike}
           aria-pressed={liked}
           aria-label={liked ? "찜 해제" : "찜하기"}
-          className="w-fit"
+          className="flex size-[20px] cursor-pointer items-center justify-center"
         >
-          <img
-            src={liked ? heartFilled : heartOutline}
-            alt=""
-            className="size-[20px]"
-          />
+          {/* 채워진 하트와 빈 하트의 원본 크기가 달라 각각 지정합니다. */}
+          {liked ? (
+            <img src={heartFilled} alt="" className="size-[20px]" />
+          ) : (
+            <img src={heartOutline} alt="" style={{ width: 16, height: 15 }} />
+          )}
         </button>
       </div>
     </li>
