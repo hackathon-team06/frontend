@@ -21,10 +21,10 @@ export default function Footer() {
           className="flex flex-col gap-[7.7px] items-center cursor-pointer"
           onClick={() => navigate("/home")}
         >
-          <img src={pathname === "/home" ? homeActive : homeInactive} />
+          <img src={pathname === "/home" || pathname === "/edit" ? homeActive : homeInactive} />
           <p
             className={`text-sm font-normal font-['Pretendard_Variable']"
-                        ${pathname === "/home" ? "text-[#65DBBE]" : "text-[#A8A8A8]"}`}
+                        ${pathname === "/home" || pathname === "/edit" ? "text-[#65DBBE]" : "text-[#A8A8A8]"}`}
           >
             홈
           </p>
