@@ -140,9 +140,9 @@ function ProductCard({ product, liked, onToggleLike }) {
   return (
     // TODO: 카드 클릭 시 상품 상세 화면으로 이동 (다음 작업)
     <li className="flex flex-col gap-[9px]">
-      <div className="flex h-[176px] w-full items-center justify-center overflow-hidden rounded-[5px] bg-mint-50">
+      <div className="h-[176px] w-full overflow-hidden rounded-[5px] bg-mint-50">
         {imageUrl && (
-          <img src={imageUrl} alt="" className="size-[90px] object-cover" />
+          <img src={imageUrl} alt="" className="size-full object-cover" />
         )}
       </div>
 
