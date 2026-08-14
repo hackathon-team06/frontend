@@ -47,7 +47,6 @@ export default function Wishlist() {
           <img src={arrowBack} alt="" style={{ width: 10.7, height: 19.46 }} />
         </button>
 
-        {/* 제목이 헤더 전체 폭을 덮어 뒤로가기 클릭을 가로채지 않도록 합니다. */}
         <h1 className="pointer-events-none absolute top-[36px] w-full text-center text-[18px] font-medium text-ink-900">
           찜한 상품
         </h1>
@@ -100,7 +99,11 @@ export default function Wishlist() {
       ) : (
         <ul className="flex flex-col gap-[21px] pb-[24px] pt-[12px]">
           {products.map((product) => (
-            <WishlistItem key={product.id} product={product} />
+            <WishlistItem
+              key={product.id}
+              product={product}
+              onOpen={() => navigate(`/product/${product.id}`)}
+            />
           ))}
         </ul>
       )}
@@ -115,12 +118,11 @@ export default function Wishlist() {
   );
 }
 
-function WishlistItem({ product }) {
+function WishlistItem({ product, onOpen }) {
   const { name, isBest, price, discountRate, hasOptions, imageUrl } = product;
 
   return (
-    // TODO: 행 클릭 시 상품 상세 화면으로 이동 (다음 작업)
-    <li className="flex gap-[14px] px-[21px]">
+    <li onClick={onOpen} className="flex cursor-pointer gap-[14px] px-[21px]">
       <div className="size-[75px] shrink-0 overflow-hidden rounded-[5px] bg-mint-50">
         {imageUrl && (
           <img src={imageUrl} alt="" className="size-full object-cover" />
