@@ -10,6 +10,7 @@ import RoutineSetting from "./pages/Onboarding/RoutineSetting";
 import Product from "./pages/Product/Product";
 import Wishlist from "./pages/Product/Wishlist";
 import ProductDetail from "./pages/Product/ProductDetail";
+import MissionEdit from "./pages/Home/MissionEdit";
 
 function App() {
   return (
@@ -28,6 +29,7 @@ function App() {
           <Route path="/product" element={<Product />} />
           <Route path="/product/wishlist" element={<Wishlist />} />
           <Route path="/product/:productId" element={<ProductDetail />} />
+          <Route path="/edit" element={<MissionEdit />} />
         </Route>
       </Routes>
     </BrowserRouter>
