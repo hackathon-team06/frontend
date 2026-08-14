@@ -32,7 +32,7 @@ export default function Footer() {
         {/* 스탬프 버튼 */}
         <div
           className="flex flex-col gap-[7.7px] items-center cursor-pointer"
-          onClick={() => navigate("/mission")}
+          onClick={() => navigate("/stamp")}
         >
           <img
             src={pathname === "/mission" ? missionActive : missionInactive}
