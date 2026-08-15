@@ -5,6 +5,7 @@ const useOnboardingStore = create(
   persist(
     (set) => ({
       // 데이터
+      nickname: "",
       gender: "",
       age: 23,
       morningTime: "06:00",
@@ -20,6 +21,7 @@ const useOnboardingStore = create(
         })),
 
       // 함수
+      setNickname: (nickname) => set({ nickname }),
       setGender: (gender) => set({ gender }),
       setAge: (age) => set({ age }),
       setMorningTime: (morningTime) => set({ morningTime }),

@@ -18,7 +18,6 @@ export default function ProfileCard({ profile, onEditNickname }) {
           {nickname}
         </span>
 
-        {/* TODO(닉네임 편집 화면): 편집 화면이 생기면 이동을 연결합니다. */}
         <button
           type="button"
           onClick={onEditNickname}
