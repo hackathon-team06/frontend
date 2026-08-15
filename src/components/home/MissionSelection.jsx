@@ -1,4 +1,8 @@
-export default function MissionSelection({ missions = [], onReselect }) {
+export default function MissionSelection({
+  missions = [],
+  onConfirm,
+  onReselect,
+}) {
   return (
     <div className="absolute inset-x-0 top-[120px] h-[641px] overflow-hidden">
       <div className="absolute left-1/2 top-0 h-[641px] w-[641px] -translate-x-1/2 rounded-full bg-[#DBF8F1] blur-[50px]" />
@@ -28,6 +32,15 @@ export default function MissionSelection({ missions = [], onReselect }) {
               </p>
             </div>
           ))}
+        </div>
+
+        <div className="mt-8 flex justify-center">
+          <button
+            onClick={onConfirm}
+            className="h-12 w-84 cursor-pointer rounded-2xl bg-[#65DBBE] text-lg font-medium text-white"
+          >
+            이 미션으로 시작하기
+          </button>
         </div>
 
         <button
