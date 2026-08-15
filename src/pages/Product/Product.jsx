@@ -3,8 +3,9 @@ import { useNavigate } from "react-router-dom";
 
 import useOnboardingStore from "../../store/useOnboardingStore";
 import useWishStore from "../../store/useWishStore";
+import usePointStore from "../../store/usePointStore";
 import { PRODUCTS, SKIN_TYPES, CATEGORIES } from "../../mocks/products";
-import { MY_POINT, getPointPrice } from "../../constants/product";
+import { getPointPrice } from "../../constants/product";
 import PointBadge from "../../components/product/PointBadge";
 
 import heartFilled from "../../assets/icons/heart_filled.png";
@@ -20,6 +21,8 @@ export default function Product() {
   // 찜 상태는 찜한 상품 화면과 공유하므로 스토어에서 가져옵니다.
   const likedIds = useWishStore((state) => state.likedIds);
   const toggleLike = useWishStore((state) => state.toggleLike);
+
+  const point = usePointStore((state) => state.point);
 
   const [skinType, setSkinType] = useState(mySkinType || "지성");
   const [category, setCategory] = useState(CATEGORIES[0]);
@@ -52,7 +55,7 @@ export default function Product() {
       </header>
 
       <p className="mt-[17px] px-[19px] text-right text-[20px] font-semibold text-ink-900">
-        <span className="text-mint-600">{MY_POINT.toLocaleString()}</span>P
+        <span className="text-mint-600">{point.toLocaleString()}</span>P
       </p>
 
       {/* 피부 타입 필터 */}
@@ -122,6 +125,7 @@ export default function Product() {
               <ProductCard
                 key={product.id}
                 product={product}
+                point={point}
                 liked={likedIds.includes(product.id)}
                 onToggleLike={() => toggleLike(product.id)}
                 onOpen={() => navigate(`/product/${product.id}`)}
@@ -134,10 +138,10 @@ export default function Product() {
   );
 }
 
-function ProductCard({ product, liked, onToggleLike, onOpen }) {
+function ProductCard({ product, point, liked, onToggleLike, onOpen }) {
   const { name, isBest, price, discountRate, hasOptions, imageUrl } = product;
 
-  const pointPrice = getPointPrice(price);
+  const pointPrice = getPointPrice(price, point);
 
   return (
     <li onClick={onOpen} className="flex cursor-pointer flex-col gap-[9px]">

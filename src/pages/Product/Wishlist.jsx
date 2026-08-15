@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import useWishStore from "../../store/useWishStore";
+import usePointStore from "../../store/usePointStore";
 import { PRODUCTS } from "../../mocks/products";
 import { WISHLIST_CATEGORIES, getPointPrice } from "../../constants/product";
 import PointBadge from "../../components/product/PointBadge";
@@ -14,6 +15,8 @@ export default function Wishlist() {
 
   const likedIds = useWishStore((state) => state.likedIds);
   const clearAll = useWishStore((state) => state.clearAll);
+
+  const point = usePointStore((state) => state.point);
 
   const [category, setCategory] = useState(null);
   const [isClearModalOpen, setIsClearModalOpen] = useState(false);
@@ -102,6 +105,7 @@ export default function Wishlist() {
             <WishlistItem
               key={product.id}
               product={product}
+              point={point}
               onOpen={() => navigate(`/product/${product.id}`)}
             />
           ))}
@@ -118,7 +122,7 @@ export default function Wishlist() {
   );
 }
 
-function WishlistItem({ product, onOpen }) {
+function WishlistItem({ product, point, onOpen }) {
   const { name, isBest, price, discountRate, hasOptions, imageUrl } = product;
 
   return (
@@ -158,7 +162,7 @@ function WishlistItem({ product, onOpen }) {
 
           <span className="ml-auto flex items-center gap-[4px]">
             <span className="text-[14px] font-medium leading-[20px] text-mint-500">
-              {getPointPrice(price).toLocaleString()}
+              {getPointPrice(price, point).toLocaleString()}
             </span>
             <PointBadge />
           </span>
