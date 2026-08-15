@@ -16,8 +16,7 @@
 /** 하루에 수행하는 미션 개수. 총 미션 수 = 코스 일수 × 이 값 */
 const MISSIONS_PER_DAY = 6;
 
-/** 닉네임은 온보딩에 없는 값이라 기본값을 둡니다.
- *  TODO(닉네임 편집 화면): 편집 기능이 생기면 저장된 값을 읽어오도록 교체 */
+/** 닉네임을 아직 정하지 않았을 때 보여줄 기본값 */
 const DEFAULT_NICKNAME = "수분남";
 
 /** 스탬프(코스) 더미. 날짜는 데모가 흔들리지 않도록 고정해 두었습니다. */
@@ -73,9 +72,9 @@ function statusOf(stampId, year, month, day) {
   return "none"; // 미참여
 }
 
-export function getMyProfile({ age, skinType, purpose } = {}) {
+export function getMyProfile({ nickname, age, skinType, purpose } = {}) {
   return {
-    nickname: DEFAULT_NICKNAME,
+    nickname: nickname || DEFAULT_NICKNAME,
     age: age || 24,
     // 온보딩은 "지성"처럼 저장하고 화면에는 "지성피부"로 보여줍니다.
     skinTypeLabel: `${skinType || "지성"}피부`,
