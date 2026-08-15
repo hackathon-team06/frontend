@@ -1,9 +1,12 @@
 import { useRef, useState } from "react";
 import skipCharacter from "../../../assets/icons/skip_icon.svg";
+import { useNavigate } from "react-router-dom";
 
-export default function SkipModal({ onClose, onSkip, onContinue }) {
+export default function SkipModal({ onClose, onContinue }) {
   const startYRef = useRef(0);
   const currentYRef = useRef(0);
+
+  const navigate = useNavigate();
 
   const [dragY, setDragY] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -120,7 +123,7 @@ export default function SkipModal({ onClose, onSkip, onContinue }) {
               {/* 확인 버튼 */}
               <div className="absolute bottom-[27px] flex gap-3 ">
                 <button
-                  onClick={onSkip}
+                  onClick={() => navigate("/home")}
                   className="h-[57px] w-[166px] cursor-pointer rounded-lg bg-[#F5F5F5] text-base font-medium text-[#A8A8A8]"
                 >
                   네, 건너뛸게요
