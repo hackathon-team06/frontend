@@ -100,7 +100,7 @@ function Home() {
             }
           />
           <IngredientRankSection />
-          <StampProgressBtn />
+          <StampProgressBtn title="스탬프 진행도" onClick={() => navigate("/stamp")} />
         </>
       ) : isEveningMissionSet ? (
         <>
@@ -111,7 +111,7 @@ function Home() {
             }
           />
           <IngredientRankSection />
-          <StampProgressBtn />
+          <StampProgressBtn title="스탬프 진행도" onClick={() => navigate("/stamp")} />
         </>
       ) : (
         <>

@@ -14,6 +14,9 @@ import MissionEdit from "./pages/Home/MissionEdit";
 import MyPage from "./pages/MyPage/MyPage";
 import StampRecord from "./pages/MyPage/StampRecord";
 import NicknameEdit from "./pages/MyPage/NicknameEdit";
+import RegisterLoading from "./pages/Register/RegisterLoading";
+import Register from "./pages/Register/Register";
+import Stamp from "./pages/Stamp/Stamp";
 
 function App() {
   return (
@@ -29,6 +32,7 @@ function App() {
             path="/onboarding/routine-setting"
             element={<RoutineSetting />}
           />
+          <Route path="/stamp" element={<Stamp />} />
           <Route path="/product" element={<Product />} />
           <Route path="/product/wishlist" element={<Wishlist />} />
           <Route path="/product/:productId" element={<ProductDetail />} />
@@ -36,6 +40,8 @@ function App() {
           <Route path="/mypage" element={<MyPage />} />
           <Route path="/mypage/stamp/:stampId" element={<StampRecord />} />
           <Route path="/mypage/nickname" element={<NicknameEdit />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/register-loading" element={<RegisterLoading />} />
         </Route>
       </Routes>
     </BrowserRouter>

@@ -13,6 +13,13 @@ export default function Footer() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
 
+  // 해당 경로에서는 Footer 숨기기
+  const hideFooter =
+    pathname === "/register-loading" ||
+    pathname === "/register";
+
+  if (hideFooter) return null;
+
   return (
     <div className="w-full h-20 bg-white rounded-tl-[30px] rounded-tr-[30px] shadow-[0px_-1px_30px_0px_rgba(101,219,190,0.10)]">
       <div className="flex justify-center items-center mt-4.75 gap-15">
@@ -35,11 +42,11 @@ export default function Footer() {
           onClick={() => navigate("/stamp")}
         >
           <img
-            src={pathname === "/mission" ? missionActive : missionInactive}
+            src={pathname === "/stamp" ? missionActive : missionInactive}
           />
           <p
             className={`text-sm font-normal font-['Pretendard_Variable'] -mt-[5px] 
-                        ${pathname === "/mission" ? "text-[#65DBBE]" : "text-[#A8A8A8]"}`}
+                        ${pathname === "/stamp" ? "text-[#65DBBE]" : "text-[#A8A8A8]"}`}
           >
             스탬프
           </p>
