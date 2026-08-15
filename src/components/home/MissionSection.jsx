@@ -1,7 +1,7 @@
 import MissionItem from "./MissionItem";
 import plusIcon from "../../assets/icons/plus_icon.svg";
 
-function MissionSection({missionData, onClick, isEdit = false, addCount = 0, onAddClick}) {
+function MissionSection({missionData, onClick, isEdit = false, isLocked = false, addCount = 0, onAddClick}) {
   return (
     <div className="flex flex-col">
       <div
@@ -18,16 +18,23 @@ function MissionSection({missionData, onClick, isEdit = false, addCount = 0, onA
             를 완료해보세요!
           </p>
 
+          {isEdit && isLocked && (
+            <p className="pb-1 text-xs font-medium text-neutral-400">
+              포인트를 받은 미션은 수정할 수 없어요
+            </p>
+          )}
+
           {missionData.map((mission) => (
             <MissionItem
               key={mission.id}
               mission={mission}
               onClick={onClick}
               isEdit={isEdit}
+              isLocked={isLocked}
             />
           ))}
 
-          {isEdit && (
+          {isEdit && !isLocked && (
             <button
               onClick={onAddClick}
               className="flex items-center gap-4 mt-[28px] cursor-pointer pl-2"
