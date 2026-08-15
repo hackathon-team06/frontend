@@ -4,7 +4,7 @@ import Footer from "../components/footer/Footer";
 import useLayoutStore from "../store/useLayoutStore";
 
 // 푸터 숨길 경로
-const HIDE_FOOTER_PATHS = ["/", "/onboarding"];
+const HIDE_FOOTER_PATHS = ["/", "/onboarding", "/home/google-calendar-sync"];
 
 export default function RootLayout() {
   const { pathname } = useLocation();
