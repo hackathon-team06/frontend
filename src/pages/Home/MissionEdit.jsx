@@ -3,10 +3,6 @@ import { useLocation, useNavigate } from "react-router-dom";
 import MissionNavBar from "../../components/home/MissionNavBar";
 import MissionSection from "../../components/home/MissionSection";
 import MissionCategorySection from "../../components/home/MissionCategorySection";
-import {
-  morningMissionData,
-  eveningMissionData,
-} from "../../constants/home/missionData";
 import { recommendedMissionData } from "../../constants/home/recommendedMissionData";
 import useMissionStore from "../../store/useMissionStore";
 
@@ -31,12 +27,22 @@ export default function MissionEdit() {
 
   const initialTab = location.state?.missionType ?? "morning";
 
+  // 카테고리 다시 선정하기로 되돌아온 경우에만 있음
+  const restoredMissions = location.state?.missions;
+
   const [activeTab, setActiveTab] = useState(initialTab);
-  const [showCategory, setShowCategory] = useState(false);
+  const [showCategory, setShowCategory] = useState(Boolean(restoredMissions));
   const [selectedCategories, setSelectedCategories] = useState([]);
 
-  const [morningMissions, setMorningMissions] = useState(morningMissionData);
-  const [eveningMissions, setEveningMissions] = useState(eveningMissionData);
+  const storedMorningMissions = useMissionStore(
+    (state) => state.morningMissions,
+  );
+
+  const storedEveningMissions = useMissionStore(
+    (state) => state.eveningMissions,
+  );
+
+  const awardedTabs = useMissionStore((state) => state.awardedTabs);
 
   const setPendingMissionSelection = useMissionStore(
     (state) => state.setPendingMissionSelection,
@@ -45,6 +51,25 @@ export default function MissionEdit() {
   const clearPendingMissionSelection = useMissionStore(
     (state) => state.clearPendingMissionSelection,
   );
+
+  // 수정 화면에서만 쓰는 임시 목록. 미션 선정 화면에서 확정해야 실제로 반영
+  const [morningMissions, setMorningMissions] = useState(
+    restoredMissions && initialTab === "morning"
+      ? restoredMissions
+      : storedMorningMissions,
+  );
+
+  const [eveningMissions, setEveningMissions] = useState(
+    restoredMissions && initialTab === "evening"
+      ? restoredMissions
+      : storedEveningMissions,
+  );
+
+  const currentMissions =
+    activeTab === "morning" ? morningMissions : eveningMissions;
+
+  // 포인트를 받은 탭은 수정 불가
+  const isTabLocked = awardedTabs.includes(activeTab);
 
   const morningRemovedCount = morningMissions.filter(
     (mission) => mission.removed,
@@ -58,9 +83,16 @@ export default function MissionEdit() {
     activeTab === "morning" ? morningRemovedCount : eveningRemovedCount;
 
   const handleMissionRemove = (id, setMissions) => {
+    if (isTabLocked) {
+      return;
+    }
+
     setMissions((prev) =>
       prev.map((mission) =>
-        mission.id === id ? { ...mission, removed: !mission.removed } : mission,
+        // 이미 완료한 미션은 그대로 둠
+        mission.id === id && !mission.completed
+          ? { ...mission, removed: !mission.removed }
+          : mission,
       ),
     );
   };
@@ -71,6 +103,19 @@ export default function MissionEdit() {
     return shuffled.slice(0, count);
   };
 
+  // 이미 목록에 있거나 방금 뽑은 미션은 후보에서 제외
+  // 인기 미션처럼 카테고리는 달라도 내용이 같은 미션이 있어 제목으로 비교
+  const getMissionPool = (categoryKey, pickedMissions = []) => {
+    const pool = recommendedMissionData[categoryKey] ?? [];
+
+    const usedTitles = [
+      ...currentMissions.map((mission) => mission.title),
+      ...pickedMissions.map((mission) => mission.title),
+    ];
+
+    return pool.filter((mission) => !usedTitles.includes(mission.title));
+  };
+
   const getRecommendedMissions = () => {
     if (selectedCategories.length === 0 || currentRemovedCount === 0) {
       return [];
@@ -78,54 +123,61 @@ export default function MissionEdit() {
 
     // 카테고리 1개 선택
     if (selectedCategories.length === 1) {
-      const missions = recommendedMissionData[selectedCategories[0]] ?? [];
+      const missions = getMissionPool(selectedCategories[0]);
 
       return getRandomMissions(missions, currentRemovedCount);
     }
 
     // 카테고리 2개 선택
-    const firstMissions = recommendedMissionData[selectedCategories[0]] ?? [];
-
-    const secondMissions = recommendedMissionData[selectedCategories[1]] ?? [];
+    const firstMissions = getMissionPool(selectedCategories[0]);
 
     // 1개 추천
     if (currentRemovedCount === 1) {
-      const selectedPool = Math.random() < 0.5 ? firstMissions : secondMissions;
+      const selectedPool =
+        Math.random() < 0.5
+          ? firstMissions
+          : getMissionPool(selectedCategories[1]);
 
       return getRandomMissions(selectedPool, 1);
     }
 
     // 2개 추천
     if (currentRemovedCount === 2) {
+      const firstPicked = getRandomMissions(firstMissions, 1);
+
       return [
-        ...getRandomMissions(firstMissions, 1),
-        ...getRandomMissions(secondMissions, 1),
+        ...firstPicked,
+        ...getRandomMissions(
+          getMissionPool(selectedCategories[1], firstPicked),
+          1,
+        ),
       ];
     }
 
     // 3개 추천
     const firstGetsTwo = Math.random() < 0.5;
 
-    return firstGetsTwo
-      ? [
-          ...getRandomMissions(firstMissions, 2),
-          ...getRandomMissions(secondMissions, 1),
-        ]
-      : [
-          ...getRandomMissions(firstMissions, 1),
-          ...getRandomMissions(secondMissions, 2),
-        ];
+    const firstPicked = getRandomMissions(firstMissions, firstGetsTwo ? 2 : 1);
+
+    return [
+      ...firstPicked,
+      ...getRandomMissions(
+        getMissionPool(selectedCategories[1], firstPicked),
+        firstGetsTwo ? 1 : 2,
+      ),
+    ];
   };
 
   const handleMissionProgress = () => {
-    const newRecommendedMissions = getRecommendedMissions().map((mission) => ({
-      ...mission,
-      removed: false,
-      completed: false,
-    }));
+    const newRecommendedMissions = getRecommendedMissions();
 
     // 미션 진행하기를 눌렀을 때만 true
-    setPendingMissionSelection(activeTab, newRecommendedMissions);
+    setPendingMissionSelection(
+      activeTab,
+      currentMissions,
+      newRecommendedMissions,
+    );
+
     navigate("/home");
   };
 
@@ -156,6 +208,7 @@ export default function MissionEdit() {
           missionData={morningMissions}
           onClick={(id) => handleMissionRemove(id, setMorningMissions)}
           isEdit={true}
+          isLocked={isTabLocked}
           addCount={morningRemovedCount}
           onAddClick={() => {
             setShowCategory(true);
@@ -167,6 +220,7 @@ export default function MissionEdit() {
           missionData={eveningMissions}
           onClick={(id) => handleMissionRemove(id, setEveningMissions)}
           isEdit={true}
+          isLocked={isTabLocked}
           addCount={eveningRemovedCount}
           onAddClick={() => {
             setShowCategory(true);
@@ -175,7 +229,7 @@ export default function MissionEdit() {
         />
       )}
 
-      {showCategory && (
+      {showCategory && !isTabLocked && (
         <>
           <MissionCategorySection
             selectedCategories={selectedCategories}

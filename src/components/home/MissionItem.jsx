@@ -2,7 +2,13 @@ import { missionIcons } from "../../constants/home/missionIcons";
 import MissionCheckBtn from "./MissionCheckBtn";
 import MissionRemoveBtn from "./MissionRemoveBtn";
 
-function MissionItem({ mission, onClick, isEdit = false }) {
+function MissionItem({ mission, onClick, isEdit = false, isLocked = false }) {
+  // 추천 미션은 아이콘이 이모지라 매핑에 없음
+  const iconSrc = missionIcons[mission.icon];
+
+  // 포인트를 받은 탭이거나 이미 완료한 미션은 제거 불가
+  const isRemoveDisabled = isLocked || mission.completed;
+
   return (
     <div className="flex items-center py-3">
       <div
@@ -10,11 +16,11 @@ function MissionItem({ mission, onClick, isEdit = false }) {
           isEdit && mission.removed ? "opacity-40 grayscale" : ""
         }`}
       >
-        <img
-          src={missionIcons[mission.icon]}
-          alt={mission.icon}
-          className="w-4 h-4"
-        />
+        {iconSrc ? (
+          <img src={iconSrc} alt={mission.icon} className="w-4 h-4" />
+        ) : (
+          <span className="text-sm leading-none">{mission.icon}</span>
+        )}
       </div>
 
       <div
@@ -33,6 +39,7 @@ function MissionItem({ mission, onClick, isEdit = false }) {
         {isEdit ? (
           <MissionRemoveBtn
             removed={mission.removed}
+            disabled={isRemoveDisabled}
             onClick={() => onClick(mission.id)}
           />
         ) : (

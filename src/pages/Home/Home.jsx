@@ -11,6 +11,8 @@ import StampProgressBtn from "../../components/home/StampProgressBtn";
 import SetUpCharacterSection from "../../components/home/SetUpCharacterSection";
 import SkinConditionSection from "../../components/home/SkinConditionSection";
 import BigBtn from "../../components/home/BigBtn";
+import SyncCompleteOverlay from "../../components/home/SyncCompleteOverlay";
+import CelebrationOverlay from "../../components/common/CelebrationOverlay";
 
 import useGoogleCalendarStore from "../../store/useGoogleCalendarStore";
 import useLayoutStore from "../../store/useLayoutStore";
@@ -19,10 +21,6 @@ import usePointStore from "../../store/usePointStore";
 
 import { weatherData } from "../../constants/home/weatherData";
 import { weekData } from "../../constants/home/weekData";
-import {
-  morningMissionData,
-  eveningMissionData,
-} from "../../constants/home/missionData";
 
 function Home() {
   const justConnected = useGoogleCalendarStore((s) => s.justConnected);
@@ -44,25 +42,38 @@ function Home() {
   const today = "2026-07-30";
 
   const [activeTab, setActiveTab] = useState("morning");
-  const [morningMissions, setMorningMissions] = useState(morningMissionData);
-  const [eveningMissions, setEveningMissions] = useState(eveningMissionData);
+
+  // 저녁 미션 설정은 홈에 들어올 때마다 다시
   const [isEveningMissionSet, setIsEveninMissionSet] = useState(false);
   const [selected, setSelected] = useState([]);
-
-  // 이미 포인트를 준 미션 세트. 체크를 풀었다 다시 눌러도 중복 적립하지 않습니다.
-  const [awardedTabs, setAwardedTabs] = useState([]);
   const [earnedPoint, setEarnedPoint] = useState(null);
 
   const setHideFooter = useLayoutStore((state) => state.setHideFooter);
   const addPoint = usePointStore((state) => state.addPoint);
 
+  const morningMissions = useMissionStore((state) => state.morningMissions);
+  const eveningMissions = useMissionStore((state) => state.eveningMissions);
+  const awardedTabs = useMissionStore((state) => state.awardedTabs);
+
+  const setMissionsByType = useMissionStore((state) => state.setMissionsByType);
+
+  const addAwardedTab = useMissionStore((state) => state.addAwardedTab);
+
   const showMissionSelection = useMissionStore(
     (state) => state.showMissionSelection,
   );
 
+  const pendingMissionType = useMissionStore(
+    (state) => state.pendingMissionType,
+  );
+
+  const pendingMissions = useMissionStore((state) => state.pendingMissions);
+
   const recommendedMissions = useMissionStore(
     (state) => state.pendingRecommendedMissions,
   );
+
+  const applyMissionEdit = useMissionStore((state) => state.applyMissionEdit);
 
   const clearPendingMissionSelection = useMissionStore(
     (state) => state.clearPendingMissionSelection,
@@ -70,14 +81,14 @@ function Home() {
 
   const isSetUpMode = activeTab === "evening" && !isEveningMissionSet;
 
-  const handleMissionCheckBtn = (id, missions, setState, tab) => {
+  const handleMissionCheckBtn = (id, missions, tab) => {
     const next = missions.map((mission) =>
       mission.id === id
         ? { ...mission, completed: !mission.completed }
         : mission,
     );
 
-    setState(next);
+    setMissionsByType(tab, next);
 
     // 세트를 다 채운 순간 한 번만 포인트를 적립하고 축하 화면을 띄웁니다.
     const isAllCompleted = next.every((mission) => mission.completed);
@@ -86,7 +97,7 @@ function Home() {
       const earned = next.reduce((sum, mission) => sum + mission.point, 0);
 
       addPoint(earned);
-      setAwardedTabs((prev) => [...prev, tab]);
+      addAwardedTab(tab);
       setEarnedPoint(earned);
     }
   };
@@ -97,9 +108,19 @@ function Home() {
     setIsEveninMissionSet(true);
   };
 
-  const handleReselectCategory = () => {
+  // 여기서 확정해야 홈 미션 섹션에 반영됨
+  const handleConfirmMissions = () => {
+    applyMissionEdit(pendingMissionType, pendingMissions, recommendedMissions);
     clearPendingMissionSelection();
-    navigate(-1);
+  };
+
+  // 수정본을 들고 수정 화면으로 되돌아가기
+  const handleReselectCategory = () => {
+    const missionType = pendingMissionType;
+    const missions = pendingMissions;
+
+    clearPendingMissionSelection();
+    navigate("/edit", { state: { missionType, missions } });
   };
 
   useEffect(() => {
@@ -119,6 +140,7 @@ function Home() {
         {showMissionSelection && (
           <MissionSelection
             missions={recommendedMissions}
+            onConfirm={handleConfirmMissions}
             onReselect={handleReselectCategory}
           />
         )}
@@ -131,7 +153,7 @@ function Home() {
           <MissionSection
             missionData={morningMissions}
             onClick={(id) =>
-              handleMissionCheckBtn(id, setMorningMissions)
+              handleMissionCheckBtn(id, morningMissions, "morning")
             }
           />
           <IngredientRankSection />
@@ -142,7 +164,7 @@ function Home() {
           <MissionSection
             missionData={eveningMissions}
             onClick={(id) =>
-              handleMissionCheckBtn(id, setEveningMissions)
+              handleMissionCheckBtn(id, eveningMissions, "evening")
             }
           />
           <IngredientRankSection />
@@ -156,6 +178,16 @@ function Home() {
 
           <BigBtn text="맞춤 미션 받기" onClick={handleSetMissions} />
         </>
+      )}
+
+      {showOverlay && <SyncCompleteOverlay />}
+
+      {earnedPoint !== null && (
+        <CelebrationOverlay
+          title="미션 성공!"
+          description={`총 ${earnedPoint}포인트를 획득했어요.`}
+          onClose={closeCelebration}
+        />
       )}
     </div>
   );
