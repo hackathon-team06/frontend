@@ -97,6 +97,34 @@ body {
   }
 }
 
+/* 미션 성공·캘린더 완료 축하 화면 등장 애니메이션 */
+@keyframes celebrateIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* 포인트 배지가 한 박자 늦게 튀어오릅니다 */
+@keyframes badgePop {
+  0% {
+    transform: scale(0.6);
+  }
+
+  60% {
+    transform: scale(1.05);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
 /* 온보딩 시간 모달 올라오는 애니메이션 */
 @keyframes slideUp {
   from {

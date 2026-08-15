@@ -1,8 +1,8 @@
 import { useNavigate } from "react-router-dom";
 
 import useOnboardingStore from "../../store/useOnboardingStore";
+import usePointStore from "../../store/usePointStore";
 import { getMyProfile, getStamps } from "../../api/mypage";
-import { MY_POINT } from "../../constants/product";
 
 import ProfileCard from "../../components/mypage/ProfileCard";
 import PointCard from "../../components/mypage/PointCard";
@@ -16,6 +16,8 @@ export default function MyPage() {
   const age = useOnboardingStore((state) => state.age);
   const skinType = useOnboardingStore((state) => state.skinType);
   const purpose = useOnboardingStore((state) => state.purpose);
+
+  const point = usePointStore((state) => state.point);
 
   const profile = getMyProfile({ nickname, age, skinType, purpose });
   const stamps = getStamps();
@@ -34,7 +36,7 @@ export default function MyPage() {
       </div>
 
       <div className="mt-[14px] px-[19px]">
-        <PointCard point={MY_POINT} onGoToProduct={() => navigate("/product")} />
+        <PointCard point={point} onGoToProduct={() => navigate("/product")} />
       </div>
 
       <h2 className="mt-[29px] px-[19px] text-[16px] font-semibold text-black">
