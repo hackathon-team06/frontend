@@ -13,6 +13,7 @@ import ProductDetail from "./pages/Product/ProductDetail";
 import MissionEdit from "./pages/Home/MissionEdit";
 import MyPage from "./pages/MyPage/MyPage";
 import StampRecord from "./pages/MyPage/StampRecord";
+import NicknameEdit from "./pages/MyPage/NicknameEdit";
 
 function App() {
   return (
@@ -34,6 +35,7 @@ function App() {
           <Route path="/edit" element={<MissionEdit />} />
           <Route path="/mypage" element={<MyPage />} />
           <Route path="/mypage/stamp/:stampId" element={<StampRecord />} />
+          <Route path="/mypage/nickname" element={<NicknameEdit />} />
         </Route>
       </Routes>
     </BrowserRouter>

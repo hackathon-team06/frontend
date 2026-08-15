@@ -11,12 +11,13 @@ import StampCard from "../../components/mypage/StampCard";
 export default function MyPage() {
   const navigate = useNavigate();
 
-  // 나이·피부타입·목표는 온보딩에서 고른 값을 그대로 씁니다.
+  // 닉네임·나이·피부타입·목표는 온보딩 스토어 값을 그대로 씁니다.
+  const nickname = useOnboardingStore((state) => state.nickname);
   const age = useOnboardingStore((state) => state.age);
   const skinType = useOnboardingStore((state) => state.skinType);
   const purpose = useOnboardingStore((state) => state.purpose);
 
-  const profile = getMyProfile({ age, skinType, purpose });
+  const profile = getMyProfile({ nickname, age, skinType, purpose });
   const stamps = getStamps();
 
   return (
@@ -28,8 +29,7 @@ export default function MyPage() {
       <div className="mt-[65px] px-[19px]">
         <ProfileCard
           profile={profile}
-          // TODO(닉네임 편집 화면): 화면이 생기면 이동을 연결합니다.
-          onEditNickname={() => {}}
+          onEditNickname={() => navigate("/mypage/nickname")}
         />
       </div>
 
