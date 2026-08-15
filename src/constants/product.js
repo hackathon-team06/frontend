@@ -1,10 +1,11 @@
 import { CATEGORIES } from "../mocks/products";
 
-/** 보유 포인트. 백엔드 연동 시 API 값으로 교체합니다. */
-export const MY_POINT = 2179;
-
-/** 포인트 사용시 가격 = 판매가 - 보유 포인트 */
-export const getPointPrice = (price) => Math.max(0, price - MY_POINT);
+/**
+ * 포인트 사용시 가격 = 판매가 - 보유 포인트
+ *
+ * 보유 포인트는 미션 완료로 늘어나므로 usePointStore 에서 읽어 넘겨주세요.
+ */
+export const getPointPrice = (price, point) => Math.max(0, price - point);
 
 /**
  * 찜한 상품 화면의 카테고리 칩.

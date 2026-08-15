@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import WeatherTipSection from "../../components/home/WeatherTipSection";
@@ -11,11 +11,11 @@ import StampProgressBtn from "../../components/home/StampProgressBtn";
 import SetUpCharacterSection from "../../components/home/SetUpCharacterSection";
 import SkinConditionSection from "../../components/home/SkinConditionSection";
 import BigBtn from "../../components/home/BigBtn";
-import SyncCompleteOverlay from "../../components/home/SyncCompleteOverlay";
 
 import useGoogleCalendarStore from "../../store/useGoogleCalendarStore";
 import useLayoutStore from "../../store/useLayoutStore";
 import useMissionStore from "../../store/useMissionStore";
+import usePointStore from "../../store/usePointStore";
 
 import { weatherData } from "../../constants/home/weatherData";
 import { weekData } from "../../constants/home/weekData";
@@ -49,7 +49,12 @@ function Home() {
   const [isEveningMissionSet, setIsEveninMissionSet] = useState(false);
   const [selected, setSelected] = useState([]);
 
+  // 이미 포인트를 준 미션 세트. 체크를 풀었다 다시 눌러도 중복 적립하지 않습니다.
+  const [awardedTabs, setAwardedTabs] = useState([]);
+  const [earnedPoint, setEarnedPoint] = useState(null);
+
   const setHideFooter = useLayoutStore((state) => state.setHideFooter);
+  const addPoint = usePointStore((state) => state.addPoint);
 
   const showMissionSelection = useMissionStore(
     (state) => state.showMissionSelection,
@@ -65,15 +70,28 @@ function Home() {
 
   const isSetUpMode = activeTab === "evening" && !isEveningMissionSet;
 
-  const handleMissionCheckBtn = (id, setState) => {
-    setState((prev) =>
-      prev.map((mission) =>
-        mission.id === id
-          ? { ...mission, completed: !mission.completed }
-          : mission,
-      ),
+  const handleMissionCheckBtn = (id, missions, setState, tab) => {
+    const next = missions.map((mission) =>
+      mission.id === id
+        ? { ...mission, completed: !mission.completed }
+        : mission,
     );
+
+    setState(next);
+
+    // 세트를 다 채운 순간 한 번만 포인트를 적립하고 축하 화면을 띄웁니다.
+    const isAllCompleted = next.every((mission) => mission.completed);
+
+    if (isAllCompleted && !awardedTabs.includes(tab)) {
+      const earned = next.reduce((sum, mission) => sum + mission.point, 0);
+
+      addPoint(earned);
+      setAwardedTabs((prev) => [...prev, tab]);
+      setEarnedPoint(earned);
+    }
   };
+
+  const closeCelebration = useCallback(() => setEarnedPoint(null), []);
 
   const handleSetMissions = () => {
     setIsEveninMissionSet(true);
@@ -112,19 +130,23 @@ function Home() {
         <>
           <MissionSection
             missionData={morningMissions}
-            onClick={(id) => handleMissionCheckBtn(id, setMorningMissions)}
+            onClick={(id) =>
+              handleMissionCheckBtn(id, setMorningMissions)
+            }
           />
           <IngredientRankSection />
-          <StampProgressBtn />
+          <StampProgressBtn title="스탬프 진행도" onClick={() => navigate("/stamp")} />
         </>
       ) : isEveningMissionSet ? (
         <>
           <MissionSection
             missionData={eveningMissions}
-            onClick={(id) => handleMissionCheckBtn(id, setEveningMissions)}
+            onClick={(id) =>
+              handleMissionCheckBtn(id, setEveningMissions)
+            }
           />
           <IngredientRankSection />
-          <StampProgressBtn />
+          <StampProgressBtn title="스탬프 진행도" onClick={() => navigate("/stamp")} />
         </>
       ) : (
         <>
@@ -135,7 +157,6 @@ function Home() {
           <BigBtn text="맞춤 미션 받기" onClick={handleSetMissions} />
         </>
       )}
-      {showOverlay && <SyncCompleteOverlay />}
     </div>
   );
 }

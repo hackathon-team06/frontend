@@ -1,6 +1,7 @@
 import { useState } from "react";
 
 import PointBadge from "./PointBadge";
+import usePointStore from "../../store/usePointStore";
 import { getPointPrice } from "../../constants/product";
 import checkWhite from "../../assets/icons/check_white.svg";
 
@@ -94,6 +95,8 @@ export default function OptionSelector({ detail, selectedOption, onSelect }) {
 }
 
 function OptionRow({ option, selected, lowest, onSelect }) {
+  const point = usePointStore((state) => state.point);
+
   return (
     <li>
       <button
@@ -145,7 +148,7 @@ function OptionRow({ option, selected, lowest, onSelect }) {
               포인트 사용시
             </span>
             <span className="text-[14px] font-medium leading-[20px] text-mint-500">
-              {getPointPrice(option.price).toLocaleString()}
+              {getPointPrice(option.price, point).toLocaleString()}
             </span>
             <PointBadge />
           </span>

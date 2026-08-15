@@ -4,6 +4,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { getProductDetail } from "../../api/productDetail";
 import useWishStore from "../../store/useWishStore";
 import useLayoutStore from "../../store/useLayoutStore";
+import usePointStore from "../../store/usePointStore";
 import { getPointPrice } from "../../constants/product";
 
 import PointBadge from "../../components/product/PointBadge";
@@ -30,6 +31,7 @@ export default function ProductDetail() {
   const likedIds = useWishStore((state) => state.likedIds);
   const toggleLike = useWishStore((state) => state.toggleLike);
   const setHideFooter = useLayoutStore((state) => state.setHideFooter);
+  const point = usePointStore((state) => state.point);
 
   // 고른 옵션은 id 로만 들고 있고 실제 옵션은 계산해서 씁니다.
   // 이렇게 하면 다른 상품으로 이동했을 때 자동으로 첫 옵션이 선택됩니다.
@@ -121,7 +123,7 @@ export default function ProductDetail() {
         <p className="mt-[9px] flex items-center gap-[4px] text-[16px] font-medium leading-[20px] text-ink-900">
           포인트 사용시
           <span className="text-mint-500">
-            {getPointPrice(selectedOption.price).toLocaleString()}
+            {getPointPrice(selectedOption.price, point).toLocaleString()}
           </span>
           <PointBadge />
         </p>

@@ -5,7 +5,8 @@
    Tailwind 기본 gray-*, green-* 을 덮어쓰지 않도록 mint-*, ink-* 로 이름을 분리했습니다. */
 @theme {
   --color-mint-600: #57c1be; /* 로고, 선택된 피부타입 칩, 포인트 숫자 */
-  --color-mint-500: #65dbbe; /* 포인트 사용가, 활성 탭 */
+  --color-mint-500: #65dbbe; /* 포인트 사용가, 활성 탭, 스탬프 전부 성공 */
+  --color-mint-400: #8be8ae; /* 스탬프 일부 성공 */
   --color-mint-300: #9fedae;
   --color-mint-100: #d1f6c8;
   --color-mint-50: #e1f3f4; /* 상품 이미지 배경 */
@@ -93,6 +94,34 @@ body {
     100% {
       transform: translate(420px, 0) rotate(0deg);
     }
+  }
+}
+
+/* 미션 성공·캘린더 완료 축하 화면 등장 애니메이션 */
+@keyframes celebrateIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* 포인트 배지가 한 박자 늦게 튀어오릅니다 */
+@keyframes badgePop {
+  0% {
+    transform: scale(0.6);
+  }
+
+  60% {
+    transform: scale(1.05);
+  }
+
+  100% {
+    transform: scale(1);
   }
 }
 
