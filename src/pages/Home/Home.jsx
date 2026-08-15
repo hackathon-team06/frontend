@@ -11,7 +11,9 @@ import StampProgressBtn from "../../components/home/StampProgressBtn";
 import SetUpCharacterSection from "../../components/home/SetUpCharacterSection";
 import SkinConditionSection from "../../components/home/SkinConditionSection";
 import BigBtn from "../../components/home/BigBtn";
+import SyncCompleteOverlay from "../../components/home/SyncCompleteOverlay";
 
+import useGoogleCalendarStore from "../../store/useGoogleCalendarStore";
 import useLayoutStore from "../../store/useLayoutStore";
 import useMissionStore from "../../store/useMissionStore";
 
@@ -23,6 +25,21 @@ import {
 } from "../../constants/home/missionData";
 
 function Home() {
+  const justConnected = useGoogleCalendarStore((s) => s.justConnected);
+  const clearJustConnected = useGoogleCalendarStore(
+    (state) => state.clearJustConnected,
+  );
+  const [showOverlay, setShowOverlay] = useState(false);
+
+  useEffect(() => {
+    if (justConnected) {
+      setShowOverlay(true);
+      clearJustConnected();
+      const timer = setTimeout(() => setShowOverlay(false), 2300);
+      return () => clearTimeout(timer);
+    }
+  }, [justConnected, clearJustConnected]);
+
   const navigate = useNavigate();
   const today = "2026-07-30";
 
@@ -95,9 +112,7 @@ function Home() {
         <>
           <MissionSection
             missionData={morningMissions}
-            onClick={(id) =>
-              handleMissionCheckBtn(id, setMorningMissions)
-            }
+            onClick={(id) => handleMissionCheckBtn(id, setMorningMissions)}
           />
           <IngredientRankSection />
           <StampProgressBtn />
@@ -106,9 +121,7 @@ function Home() {
         <>
           <MissionSection
             missionData={eveningMissions}
-            onClick={(id) =>
-              handleMissionCheckBtn(id, setEveningMissions)
-            }
+            onClick={(id) => handleMissionCheckBtn(id, setEveningMissions)}
           />
           <IngredientRankSection />
           <StampProgressBtn />
@@ -117,14 +130,12 @@ function Home() {
         <>
           <SetUpCharacterSection />
 
-          <SkinConditionSection
-            selected={selected}
-            setSelected={setSelected}
-          />
+          <SkinConditionSection selected={selected} setSelected={setSelected} />
 
           <BigBtn text="맞춤 미션 받기" onClick={handleSetMissions} />
         </>
       )}
+      {showOverlay && <SyncCompleteOverlay />}
     </div>
   );
 }
