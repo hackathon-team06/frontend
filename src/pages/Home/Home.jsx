@@ -11,8 +11,8 @@ import StampProgressBtn from "../../components/home/StampProgressBtn";
 import SetUpCharacterSection from "../../components/home/SetUpCharacterSection";
 import SkinConditionSection from "../../components/home/SkinConditionSection";
 import BigBtn from "../../components/home/BigBtn";
-import CelebrationOverlay from "../../components/common/CelebrationOverlay";
 
+import useGoogleCalendarStore from "../../store/useGoogleCalendarStore";
 import useLayoutStore from "../../store/useLayoutStore";
 import useMissionStore from "../../store/useMissionStore";
 import usePointStore from "../../store/usePointStore";
@@ -25,6 +25,21 @@ import {
 } from "../../constants/home/missionData";
 
 function Home() {
+  const justConnected = useGoogleCalendarStore((s) => s.justConnected);
+  const clearJustConnected = useGoogleCalendarStore(
+    (state) => state.clearJustConnected,
+  );
+  const [showOverlay, setShowOverlay] = useState(false);
+
+  useEffect(() => {
+    if (justConnected) {
+      setShowOverlay(true);
+      clearJustConnected();
+      const timer = setTimeout(() => setShowOverlay(false), 2300);
+      return () => clearTimeout(timer);
+    }
+  }, [justConnected, clearJustConnected]);
+
   const navigate = useNavigate();
   const today = "2026-07-30";
 
@@ -116,12 +131,7 @@ function Home() {
           <MissionSection
             missionData={morningMissions}
             onClick={(id) =>
-              handleMissionCheckBtn(
-                id,
-                morningMissions,
-                setMorningMissions,
-                "morning",
-              )
+              handleMissionCheckBtn(id, setMorningMissions)
             }
           />
           <IngredientRankSection />
@@ -132,12 +142,7 @@ function Home() {
           <MissionSection
             missionData={eveningMissions}
             onClick={(id) =>
-              handleMissionCheckBtn(
-                id,
-                eveningMissions,
-                setEveningMissions,
-                "evening",
-              )
+              handleMissionCheckBtn(id, setEveningMissions)
             }
           />
           <IngredientRankSection />
@@ -147,21 +152,10 @@ function Home() {
         <>
           <SetUpCharacterSection />
 
-          <SkinConditionSection
-            selected={selected}
-            setSelected={setSelected}
-          />
+          <SkinConditionSection selected={selected} setSelected={setSelected} />
 
           <BigBtn text="맞춤 미션 받기" onClick={handleSetMissions} />
         </>
-      )}
-
-      {earnedPoint !== null && (
-        <CelebrationOverlay
-          title="미션 성공!"
-          description={`총 ${earnedPoint}포인트를 획득했어요.`}
-          onClose={closeCelebration}
-        />
       )}
     </div>
   );

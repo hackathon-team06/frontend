@@ -1,8 +1,8 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-
 import RootLayout from "./layout/RootLayout";
 import Login from "./pages/Login/Login";
 import Home from "./pages/Home/Home";
+import GoogleCalendarSync from "./pages/GoogleCalendarSync/GoogleCalendarSync";
 import Onboarding from "./pages/Onboarding/Onboarding";
 import Result from "./pages/Onboarding/Result";
 import Complete from "./pages/Onboarding/Complete";
@@ -31,6 +31,10 @@ function App() {
           <Route
             path="/onboarding/routine-setting"
             element={<RoutineSetting />}
+          />
+          <Route
+            path="/home/google-calendar-sync"
+            element={<GoogleCalendarSync />}
           />
           <Route path="/stamp" element={<Stamp />} />
           <Route path="/product" element={<Product />} />
