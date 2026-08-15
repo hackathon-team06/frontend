@@ -57,6 +57,7 @@ const skinTypePath = {
 function ResultOption({ text, selected, onClick }) {
   return (
     <button
+      type="button"
       onClick={onClick}
       className={`w-[340px] h-[66px] rounded-xl border flex items-center px-[18px] text-left text-[15px] font-medium cursor-pointer transition-colors
         ${
@@ -88,21 +89,10 @@ export default function Result() {
     }
   }, [skinType, navigate]);
 
-  // 루틴 3개 선택 시 완료 페이지로 이동
-  useEffect(() => {
-    if (selectedRoutines.length === 3) {
-      const timer = setTimeout(() => {
-        navigate("/onboarding/complete");
-      }, 1500);
-
-      return () => clearTimeout(timer);
-    }
-  }, [selectedRoutines, navigate]);
-
-  // 루틴 선택
+  // 추천 루틴 선택/해제
   const handleRoutineClick = (index) => {
     setSelectedRoutines((prev) => {
-      // 이미 선택한 옵션이면 선택 해제
+      // 이미 선택되어 있으면 선택 해제
       if (prev.includes(index)) {
         return prev.filter((item) => item !== index);
       }
@@ -112,28 +102,52 @@ export default function Result() {
         return prev;
       }
 
-      // 선택 추가
       return [...prev, index];
     });
   };
 
+  // 루틴 설정하러 가기
+  const handleGoRoutineSetting = () => {
+    const selectedRoutineTexts = selectedRoutines.map(
+      (index) => result.routines[index],
+    );
+
+    navigate("/onboarding/routine-setting", {
+      state: {
+        selectedRoutines: selectedRoutineTexts,
+      },
+    });
+  };
+
+  // 시작하기
+  const handleStart = () => {
+    // 하나도 선택하지 않았으면 실행 X
+    if (selectedRoutines.length === 0) return;
+
+    navigate("/onboarding/complete");
+  };
+
   return (
     <div className="relative flex min-h-screen flex-col items-center overflow-hidden bg-white">
+      {/* 배경 */}
       <div className="absolute top-[50px] left-1/2 h-[760px] w-[560px] -translate-x-1/2 rounded-full bg-[#D9FFF6] blur-[55px] opacity-80" />
 
+      {/* 제목 */}
       <header className="relative z-10 mt-[150px] flex flex-col items-center text-center">
         <p className="text-cyan-900 text-[28px] font-bold leading-[51.2px] tracking-wide">
           발견 완료!
         </p>
+
         <p className="text-cyan-900 text-[24px] font-bold leading-10 tracking-wide">
           마음에 드시는 루틴을 골라주세요
         </p>
+
         <p className="mt-[2px] text-neutral-400 text-xs font-medium leading-5 tracking-tight">
           매일 아침과 저녁에 함께 해볼까요!?
         </p>
       </header>
 
-      {/* 루틴 선택 */}
+      {/* 루틴 목록 */}
       <main className="relative z-10 mt-[34px] flex flex-col gap-[14px]">
         {result?.routines.map((routine, index) => (
           <ResultOption
@@ -152,14 +166,22 @@ export default function Result() {
           직접 추가해볼 수도 있어요!
         </p>
         <button
-          onClick={() => navigate("/onboarding/routine-setting")}
+          onClick={handleGoRoutineSetting}
           className="cursor-pointer text-slate-500 text-xs font-medium underline leading-5 tracking-tight"
         >
           루틴 설정하러 가기
         </button>
+        {/* 하나 이상 선택하면 시작하기 표시 */}
+        {selectedRoutines.length > 0 && (
+          <button
+            onClick={handleStart}
+            className="mt-[7px] cursor-pointer text-[#3B6D8D] text-xl font-bold leading-8 tracking-wide"
+          >
+            시작하기
+          </button>
+        )}
       </footer>
-
-      <img src={loadingCharacter} alt="" />
+      <img src={loadingCharacter} />
     </div>
   );
 }
