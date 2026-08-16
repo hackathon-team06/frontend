@@ -19,3 +19,9 @@ export const getWeeklyMissionStatus = async (date) => {
 
   return response.data;
 };
+
+// 아침 생활 루틴 선택지 조회
+export const getMorningRoutineOptions = async () => {
+  const response = await api.get("/api/missions/morning-routine/options");
+  return response.data;
+};
