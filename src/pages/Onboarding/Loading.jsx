@@ -26,18 +26,9 @@ const positions = [
   { top: 150, left: 30 },
 ];
 
-export default function Loading({ onNext }) {
+export default function Loading() {
   const [step, setStep] = useState(0);
   const [direction, setDirection] = useState(1);
-
-  // 5초 후 Result 페이지로 이동
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      onNext();
-    }, 5000);
-
-    return () => clearTimeout(timer);
-  }, [onNext]);
 
   // 아이콘 애니메이션
   useEffect(() => {
