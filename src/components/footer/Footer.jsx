@@ -1,0 +1,89 @@
+import { useNavigate, useLocation } from "react-router-dom";
+// 이미지
+import homeActive from "../../assets/icons/home_active.svg";
+import homeInactive from "../../assets/icons/home_inactive.svg";
+import missionActive from "../../assets/icons/mission_active.svg";
+import missionInactive from "../../assets/icons/mission_inactive.svg";
+import productActive from "../../assets/icons/product_active.svg";
+import productInactive from "../../assets/icons/product_inactive.svg";
+import myActive from "../../assets/icons/my_active.svg";
+import myInactive from "../../assets/icons/my_inactive.svg";
+
+export default function Footer() {
+  const navigate = useNavigate();
+  const { pathname } = useLocation();
+
+  // 해당 경로에서는 Footer 숨기기
+  const hideFooter =
+    pathname === "/register-loading" ||
+    pathname === "/register";
+
+  if (hideFooter) return null;
+
+  return (
+    <div className="w-full h-20 bg-white rounded-tl-[30px] rounded-tr-[30px] shadow-[0px_-1px_30px_0px_rgba(101,219,190,0.10)]">
+      <div className="flex justify-center items-center mt-4.75 gap-15">
+        {/* 홈 버튼 */}
+        <div
+          className="flex flex-col gap-[7.7px] items-center cursor-pointer"
+          onClick={() => navigate("/home")}
+        >
+          <img src={pathname === "/home" || pathname === "/edit" ? homeActive : homeInactive} />
+          <p
+            className={`text-sm font-normal font-['Pretendard_Variable']"
+                        ${pathname === "/home" || pathname === "/edit" ? "text-[#65DBBE]" : "text-[#A8A8A8]"}`}
+          >
+            홈
+          </p>
+        </div>
+        {/* 스탬프 버튼 */}
+        <div
+          className="flex flex-col gap-[7.7px] items-center cursor-pointer"
+          onClick={() => navigate("/stamp")}
+        >
+          <img
+            src={pathname === "/stamp" ? missionActive : missionInactive}
+          />
+          <p
+            className={`text-sm font-normal font-['Pretendard_Variable'] -mt-[5px] 
+                        ${pathname === "/stamp" ? "text-[#65DBBE]" : "text-[#A8A8A8]"}`}
+          >
+            스탬프
+          </p>
+        </div>
+        {/* 제품 버튼 */}
+        <div
+          className="flex flex-col gap-[7.7px] items-center cursor-pointer"
+          onClick={() => navigate("/product")}
+        >
+          <img
+            src={
+              pathname.startsWith("/product") ? productActive : productInactive
+            }
+          />
+          <p
+            className={`text-sm font-normal font-['Pretendard_Variable']
+                        ${pathname.startsWith("/product") ? "text-[#65DBBE]" : "text-[#A8A8A8]"}`}
+          >
+            제품
+          </p>
+        </div>
+        {/* 마이페이지 버튼 */}
+        <div
+          className="flex flex-col gap-[7.7px] items-center cursor-pointer"
+          onClick={() => navigate("/mypage")}
+        >
+          <img
+            src={pathname.startsWith("/mypage") ? myActive : myInactive}
+          />
+          <p
+            className={`text-sm font-normal font-['Pretendard_Variable']
+                        ${pathname.startsWith("/mypage") ? "text-[#65DBBE]" : "text-[#A8A8A8]"}`}
+          >
+            마이
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}

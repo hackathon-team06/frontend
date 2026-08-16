@@ -1,1 +1,167 @@
+@import url("https://fonts.googleapis.com/css2?family=Rammetto+One&display=swap");
 @import "tailwindcss";
+
+/* 디자인 시스템 색상 (Figma 변수 기준)
+   Tailwind 기본 gray-*, green-* 을 덮어쓰지 않도록 mint-*, ink-* 로 이름을 분리했습니다. */
+@theme {
+  --color-mint-600: #57c1be; /* 로고, 선택된 피부타입 칩, 포인트 숫자 */
+  --color-mint-500: #65dbbe; /* 포인트 사용가, 활성 탭, 스탬프 전부 성공 */
+  --color-mint-400: #8be8ae; /* 스탬프 일부 성공 */
+  --color-mint-300: #9fedae;
+  --color-mint-100: #d1f6c8;
+  --color-mint-50: #e1f3f4; /* 상품 이미지 배경 */
+  --color-sale: #e05d5d; /* 할인율 */
+
+  --color-ink-900: #1a1a1a;
+  --color-ink-500: #8f8f8f;
+  --color-ink-400: #a8a8a8;
+  --color-ink-300: #d9d9d9;
+  --color-ink-100: #f5f5f5;
+  --color-ink-50: #fbfbfb;
+}
+
+@font-face {
+  font-family: "Pretendard Variable";
+  src: url("./assets/fonts/PretendardVariable.woff2") format("woff2");
+  font-weight: 45 920;
+  font-style: normal;
+}
+
+body {
+  font-family: "Pretendard Variable", sans-serif;
+}
+
+.logo-font {
+  font-family: "Rammetto One", cursive;
+}
+
+@layer utilities {
+  /* 스크롤바 숨기기 */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+}
+
+/* 로그인 화면 캐릭터 애니메이션 */
+@theme {
+  --animate-character: character 4.2s linear infinite;
+
+  @keyframes character {
+    0% {
+      transform: translate(-100px, 0) rotate(0deg);
+    }
+
+    10% {
+      transform: translate(-55px, -6px) rotate(-2deg);
+    }
+
+    20% {
+      transform: translate(-10px, 0) rotate(2deg);
+    }
+
+    30% {
+      transform: translate(35px, -6px) rotate(-2deg);
+    }
+
+    40% {
+      transform: translate(80px, 0) rotate(2deg);
+    }
+
+    50% {
+      transform: translate(125px, -6px) rotate(-2deg);
+    }
+
+    60% {
+      transform: translate(170px, 0) rotate(2deg);
+    }
+
+    70% {
+      transform: translate(215px, -6px) rotate(-2deg);
+    }
+
+    80% {
+      transform: translate(260px, 0) rotate(2deg);
+    }
+
+    90% {
+      transform: translate(325px, -6px) rotate(-2deg);
+    }
+
+    100% {
+      transform: translate(420px, 0) rotate(0deg);
+    }
+  }
+}
+
+/* 미션 성공·캘린더 완료 축하 화면 등장 애니메이션 */
+@keyframes celebrateIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* 포인트 배지가 한 박자 늦게 튀어오릅니다 */
+@keyframes badgePop {
+  0% {
+    transform: scale(0.6);
+  }
+
+  60% {
+    transform: scale(1.05);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* 온보딩 시간 모달 올라오는 애니메이션 */
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
+@keyframes loadingOrbit {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes loadingIconSwap {
+  0% {
+    transform: translateX(0);
+  }
+
+  100% {
+    transform: translateX(var(--move-x));
+  }
+}
+
+.loading-icon-swap {
+  animation: loadingIconSwap 2.4s ease-in-out infinite alternate;
+}
+
+.loading-moving-icon {
+  transition:
+    top 0.65s ease-in-out,
+    left 0.65s ease-in-out;
+}

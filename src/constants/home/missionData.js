@@ -1,0 +1,55 @@
+// 미션 mockData
+// point : 미션 하나를 완료했을 때 받는 포인트. 한 세트를 다 채우면 합계가 적립됩니다.
+export const morningMissionData = [
+  {
+    id: 1,
+    icon: "water",
+    title: "기상 직후 미온수 1잔 마시기!",
+    subtitle: "(250ml)",
+    point: 3,
+    completed: false,
+  },
+  {
+    id: 2,
+    icon: "vitamin",
+    title: "아침 식사 후 알약 챙겨먹기! ",
+    subtitle: "비타민 A,아연",
+    point: 3,
+    completed: false,
+  },
+  {
+    id: 3,
+    icon: "cream",
+    title: "외출 전 수분 스킨&썬크림 바르기! ",
+    subtitle: "",
+    point: 2,
+    completed: false,
+  },
+];
+
+export const eveningMissionData = [
+  {
+    id: 1,
+    icon: "cooling",
+    title: "세안 직후 쿨링 패드로 진정 팩하기!",
+    subtitle: "(15분)",
+    point: 3,
+    completed: false,
+  },
+  {
+    id: 2,
+    icon: "lymph",
+    title: "붓기 예방을 위해 림프 마사지하기!",
+    subtitle: "(3분)",
+    point: 3,
+    completed: false,
+  },
+  {
+    id: 3,
+    icon: "cream2",
+    title: "수분 크림 바르고 숙면 준비하기!",
+    subtitle: "",
+    point: 2,
+    completed: false,
+  },
+];
