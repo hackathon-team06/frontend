@@ -4,10 +4,35 @@ import sparkle from "../../assets/images/sparkle.svg";
 
 import LoginButton from "../../components/common/LoginButton/LoginButton";
 
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+
+import { login } from "../../api/auth";
+import useAuthStore from "../../store/useAuthStore";
 
 export default function Login() {
   const navigate = useNavigate();
+
+  const saveToken = useAuthStore((state) => state.login);
+
+  const [isLoading, setIsLoading] = useState(false);
+  const [hasError, setHasError] = useState(false);
+
+  const handleLogin = async () => {
+    setIsLoading(true);
+    setHasError(false);
+
+    try {
+      const data = await login();
+
+      saveToken(data);
+      navigate("/onboarding");
+    } catch {
+      setHasError(true);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   return (
     <div className="relative h-screen overflow-hidden">
@@ -42,9 +67,16 @@ export default function Login() {
       </div>
       <img src={character} className="animate-character mt-[200px]" />
       <LoginButton
-        title="테스트 계정으로 로그인"
-        onClick={() => navigate("/onboarding")}
+        title={isLoading ? "로그인 중..." : "테스트 계정으로 로그인"}
+        onClick={handleLogin}
+        disabled={isLoading}
       />
+
+      {hasError && (
+        <p className="mt-3 text-center text-sm font-medium text-sale">
+          로그인에 실패했어요. 잠시 후 다시 시도해주세요.
+        </p>
+      )}
       <div className="pointer-events-none absolute top-[420px] w-96 h-[550px] bg-radial-[at_4%_57%] from-emerald-300/10 to-slate-600/10 blur-2xl" />
     </div>
   );
