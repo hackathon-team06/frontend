@@ -19,8 +19,6 @@ import useLayoutStore from "../../store/useLayoutStore";
 import useMissionStore from "../../store/useMissionStore";
 import usePointStore from "../../store/usePointStore";
 
-import { weatherData } from "../../constants/home/weatherData";
-import { weekData } from "../../constants/home/weekData";
 
 function Home() {
   const clearJustConnected = useGoogleCalendarStore(
@@ -38,7 +36,6 @@ function Home() {
   const hideSyncOverlay = useCallback(() => setShowOverlay(false), []);
 
   const navigate = useNavigate();
-  const today = "2026-07-30";
 
   const [activeTab, setActiveTab] = useState("morning");
 
@@ -132,8 +129,8 @@ function Home() {
   return (
     <div>
       <div className="relative">
-        <WeatherTipSection weather={weatherData} />
-        <WeekCalenderSection weekData={weekData} today={today} />
+        <WeatherTipSection />
+        <WeekCalenderSection />
 
         {showMissionSelection && (
           <MissionSelection
