@@ -23,20 +23,19 @@ import { weatherData } from "../../constants/home/weatherData";
 import { weekData } from "../../constants/home/weekData";
 
 function Home() {
-  const justConnected = useGoogleCalendarStore((s) => s.justConnected);
   const clearJustConnected = useGoogleCalendarStore(
     (state) => state.clearJustConnected,
   );
-  const [showOverlay, setShowOverlay] = useState(false);
+
+  const [showOverlay, setShowOverlay] = useState(
+    () => useGoogleCalendarStore.getState().justConnected,
+  );
 
   useEffect(() => {
-    if (justConnected) {
-      setShowOverlay(true);
-      clearJustConnected();
-      const timer = setTimeout(() => setShowOverlay(false), 2300);
-      return () => clearTimeout(timer);
-    }
-  }, [justConnected, clearJustConnected]);
+    clearJustConnected();
+  }, [clearJustConnected]);
+
+  const hideSyncOverlay = useCallback(() => setShowOverlay(false), []);
 
   const navigate = useNavigate();
   const today = "2026-07-30";
@@ -90,7 +89,6 @@ function Home() {
 
     setMissionsByType(tab, next);
 
-    // 세트를 다 채운 순간 한 번만 포인트를 적립하고 축하 화면을 띄웁니다.
     const isAllCompleted = next.every((mission) => mission.completed);
 
     if (isAllCompleted && !awardedTabs.includes(tab)) {
@@ -180,7 +178,7 @@ function Home() {
         </>
       )}
 
-      {showOverlay && <SyncCompleteOverlay />}
+      {showOverlay && <SyncCompleteOverlay onDone={hideSyncOverlay} />}
 
       {earnedPoint !== null && (
         <CelebrationOverlay

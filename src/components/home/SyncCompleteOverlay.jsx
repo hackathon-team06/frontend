@@ -1,19 +1,29 @@
 import { useEffect, useState } from "react";
 import googleCalIcon from "../../assets/icons/calendar_icon.svg";
 
-export default function SyncCompleteOverlay() {
+const VISIBLE_DURATION = 2000;
+
+const FADE_DURATION = 500;
+
+export default function SyncCompleteOverlay({ onDone }) {
   const [visible, setVisible] = useState(true);
 
   useEffect(() => {
-    const timer = setTimeout(() => setVisible(false), 2500);
-    return () => clearTimeout(timer);
-  }, []);
+    const fadeTimer = setTimeout(() => setVisible(false), VISIBLE_DURATION);
+    // 페이드가 다 끝난 뒤에 알려야 툭 끊기지 않고 자연스럽게 사라집니다.
+    const doneTimer = setTimeout(onDone, VISIBLE_DURATION + FADE_DURATION);
+
+    return () => {
+      clearTimeout(fadeTimer);
+      clearTimeout(doneTimer);
+    };
+  }, [onDone]);
 
   return (
     <div
       className={`absolute inset-0 z-50 flex flex-col items-center justify-center
         overflow-hidden transition-opacity duration-500
-        ${visible ? "opacity-100" : "opacity-0"}`}
+        ${visible ? "opacity-100" : "opacity-0 pointer-events-none"}`}
     >
       {/* 중앙 초록 글로우만 */}
       <div className="absolute size-[477px] rounded-full bg-green-100 blur-[50px]" />
