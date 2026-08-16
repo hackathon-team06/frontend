@@ -26,9 +26,11 @@ function OptionButton({ title, onClick, isSelected }) {
 
 function RegisterButton({ onClick }) {
   return (
-    <div className="fixed bottom-[29px] left-[565px]" onClick={onClick}>
+    <div
+      className="fixed bottom-[29px] left-1/2 -translate-x-1/2"
+      onClick={onClick}
+    >
       <button
-        type="button"
         className="cursor-pointer w-[332px] h-[52px] bg-emerald-300 rounded-[20px] text-white text-lg font-semibold"
       >
         일정 등록하기
