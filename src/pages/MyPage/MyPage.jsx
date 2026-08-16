@@ -1,8 +1,10 @@
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 import useOnboardingStore from "../../store/useOnboardingStore";
 import usePointStore from "../../store/usePointStore";
-import { getMyProfile, getStamps } from "../../api/mypage";
+import useUserStore from "../../store/useUserStore";
+import { toProfile, getStamps } from "../../api/mypage";
 
 import ProfileCard from "../../components/mypage/ProfileCard";
 import PointCard from "../../components/mypage/PointCard";
@@ -11,7 +13,10 @@ import StampCard from "../../components/mypage/StampCard";
 export default function MyPage() {
   const navigate = useNavigate();
 
-  // 닉네임·나이·피부타입·목표는 온보딩 스토어 값을 그대로 씁니다.
+  const user = useUserStore((state) => state.user);
+  const fetchUser = useUserStore((state) => state.fetchUser);
+
+  // 서버 조회가 실패했을 때 대신 쓸 값입니다.
   const nickname = useOnboardingStore((state) => state.nickname);
   const age = useOnboardingStore((state) => state.age);
   const skinType = useOnboardingStore((state) => state.skinType);
@@ -19,7 +24,15 @@ export default function MyPage() {
 
   const point = usePointStore((state) => state.point);
 
-  const profile = getMyProfile({ nickname, age, skinType, purpose });
+  // 온보딩을 거치지 않고 바로 들어온 경우(새로고침 등)에도 채웁니다.
+  useEffect(() => {
+    if (user) return;
+
+    // 실패해도 아래 fallback 값으로 화면을 그리므로 그냥 넘깁니다.
+    fetchUser().catch(() => {});
+  }, [user, fetchUser]);
+
+  const profile = toProfile(user, { nickname, age, skinType, purpose });
   const stamps = getStamps();
 
   return (
