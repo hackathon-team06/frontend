@@ -18,6 +18,7 @@ import useGoogleCalendarStore from "../../store/useGoogleCalendarStore";
 import useLayoutStore from "../../store/useLayoutStore";
 import useMissionStore from "../../store/useMissionStore";
 import usePointStore from "../../store/usePointStore";
+import { formatApiDate } from "../../utils/getDate";
 
 
 function Home() {
@@ -65,8 +66,6 @@ function Home() {
 
   const [activeTab, setActiveTab] = useState("morning");
 
-  // 저녁 미션 설정은 홈에 들어올 때마다 다시
-  const [isEveningMissionSet, setIsEveninMissionSet] = useState(false);
   const [selected, setSelected] = useState([]);
   const [earnedPoint, setEarnedPoint] = useState(null);
 
@@ -101,6 +100,17 @@ function Home() {
     (state) => state.clearPendingMissionSelection,
   );
 
+  const eveningSetDate = useMissionStore((state) => state.eveningSetDate);
+
+  const markEveningMissionsSet = useMissionStore(
+    (state) => state.markEveningMissionsSet,
+  );
+
+  // 저녁 미션은 그날 피부 상태를 체크하고 받는 것이라 하루에 한 번만 받습니다.
+  // 스토어에 받은 날짜를 두고 오늘과 비교하므로, 다른 화면에 갔다 와도 유지되고
+  // 날이 바뀌면 다시 받게 됩니다.
+  const isEveningMissionSet = eveningSetDate === formatApiDate();
+
   const isSetUpMode = activeTab === "evening" && !isEveningMissionSet;
 
   const handleMissionCheckBtn = (id, missions, tab) => {
@@ -126,7 +136,7 @@ function Home() {
   const closeCelebration = useCallback(() => setEarnedPoint(null), []);
 
   const handleSetMissions = () => {
-    setIsEveninMissionSet(true);
+    markEveningMissionsSet(formatApiDate());
   };
 
   // 여기서 확정해야 홈 미션 섹션에 반영됨
