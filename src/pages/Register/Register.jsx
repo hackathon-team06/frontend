@@ -4,7 +4,7 @@ import registerCalendar from "../../assets/images/register_calendar.svg";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 
-import useScheduleStore from "../../store/useScheduleStore";
+import { createSchedule } from "../../api/schedule";
 
 function OptionButton({ title, onClick, isSelected }) {
   return (
@@ -30,9 +30,7 @@ function RegisterButton({ onClick }) {
       className="fixed bottom-[29px] left-1/2 -translate-x-1/2"
       onClick={onClick}
     >
-      <button
-        className="cursor-pointer w-[332px] h-[52px] bg-emerald-300 rounded-[20px] text-white text-lg font-semibold"
-      >
+      <button className="cursor-pointer w-[332px] h-[52px] bg-emerald-300 rounded-[20px] text-white text-lg font-semibold">
         일정 등록하기
       </button>
     </div>
@@ -47,8 +45,28 @@ const peopleOptions = [
 const scheduleOptions = [
   ["데이트", "미팅/면접", "자기관리"],
   ["술자리모임", "여행", "결혼식"],
-  ["이벤트", "친목/수다", "생일"],
+  ["이벤트", "친목/수다", "행사"],
 ];
+
+const peopleMap = {
+  연인: "LOVER",
+  직장동료: "COWORKER",
+  친구: "FRIEND",
+  "가족/친척": "FAMILY",
+  "지인/모임": "ACQUAINTANCE",
+};
+
+const scheduleMap = {
+  데이트: "DATE",
+  "미팅/면접": "MEETING",
+  자기관리: "SELF_CARE",
+  술자리모임: "DRINKING",
+  여행: "TRAVEL",
+  결혼식: "WEDDING",
+  이벤트: "EVENT",
+  "친목/수다": "TALK",
+  행사: "CEREMONY",
+};
 
 export default function Register() {
   const navigate = useNavigate();
@@ -83,7 +101,7 @@ export default function Register() {
   };
 
   const getScheduleParticle = () => {
-    const useIe = ["미팅/면접", "술자리모임", "결혼식", "여행", "생일"];
+    const useIe = ["미팅/면접", "술자리모임", "결혼식", "여행"];
 
     return useIe.includes(selectedSchedule) ? "이" : "가";
   };
@@ -112,26 +130,37 @@ export default function Register() {
     );
   };
 
-  const addSchedule = useScheduleStore((state) => state.addSchedule);
+  const formatDate = (date) => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
 
-  const handleRegister = () => {
+    return `${year}-${month}-${day}`;
+  };
+
+  const handleRegister = async () => {
     if (!selectedPerson || !selectedSchedule) {
       alert("사람과 일정 옵션을 모두 선택해주세요!");
 
       return;
     }
 
-    addSchedule({
-      dayNumber: selectedDay,
-      person: selectedPerson,
-      schedule: selectedSchedule,
-      month,
-      date,
-      day,
-      dateText: `${month}월 ${date}일 ${day}요일`,
-    });
+    const scheduleData = {
+      title: `${selectedPerson} ${selectedSchedule}`,
+      startDate: formatDate(selectedDate),
+      endDate: formatDate(selectedDate),
+      startTime: "09:00",
+      endTime: "20:00",
+      companion: peopleMap[selectedPerson],
+      category: scheduleMap[selectedSchedule],
+    };
 
-    navigate("/stamp");
+    try {
+      await createSchedule(scheduleData);
+      navigate("/stamp");
+    } catch (error) {
+      console.error("일정 등록 실패: ", error);
+    }
   };
 
   return (
