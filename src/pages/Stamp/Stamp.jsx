@@ -1,5 +1,4 @@
 import WeatherTipSection from "../../components/home/WeatherTipSection";
-import { weatherData } from "../../constants/home/weatherData";
 import WeekCalenderSection from "../../components/home/WeekCalendarSection";
 import map from "../../assets/images/map.svg";
 import stamp from "../../assets/images/home_stamp.svg";
@@ -147,7 +146,7 @@ export default function Stamp() {
 
   return (
     <div>
-      <WeatherTipSection weather={weatherData} />
+      <WeatherTipSection />
 
       <WeekCalenderSection />
 
