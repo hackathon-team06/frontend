@@ -19,7 +19,6 @@ import useLayoutStore from "../../store/useLayoutStore";
 import useMissionStore from "../../store/useMissionStore";
 import usePointStore from "../../store/usePointStore";
 
-import { weatherData } from "../../constants/home/weatherData";
 
 function Home() {
   const clearJustConnected = useGoogleCalendarStore(
@@ -130,7 +129,7 @@ function Home() {
   return (
     <div>
       <div className="relative">
-        <WeatherTipSection weather={weatherData} />
+        <WeatherTipSection />
         <WeekCalenderSection />
 
         {showMissionSelection && (
