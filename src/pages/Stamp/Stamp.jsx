@@ -1,10 +1,14 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+
 import WeatherTipSection from "../../components/home/WeatherTipSection";
 import WeekCalenderSection from "../../components/home/WeekCalendarSection";
+import StampProgressBtn from "../../components/home/StampProgressBtn";
+import { getSchedulesByDate } from "../../api/schedule";
+import useAuthStore from "../../store/useAuthStore";
+
 import map from "../../assets/images/map.svg";
 import stamp from "../../assets/images/home_stamp.svg";
-import useScheduleStore from "../../store/useScheduleStore";
-import StampProgressBtn from "../../components/home/StampProgressBtn";
-import { useNavigate } from "react-router-dom";
 
 import alcoholIcon from "../../assets/icons/alcohol_icon.svg";
 import birthdayIcon from "../../assets/icons/birthday_icon.svg";
@@ -16,38 +20,137 @@ import selfcareIcon from "../../assets/icons/selfcare_icon.svg";
 import eventIcon from "../../assets/icons/event_icon.svg";
 
 const periodnumbers = [
-  { number: 5, className: "top-[65px] left-[75px]" },
-  { number: 6, className: "top-[155px] left-[30px]" },
-  { number: 7, className: "top-[155px] left-[130px]" },
-  { number: 8, className: "top-[155px] left-[230px]" },
-  { number: 9, className: "top-[245px] left-[180px]" },
-  { number: 10, className: "top-[245px] left-[80px]" },
-  { number: 11, className: "top-[335px] left-[30px]" },
-  { number: 12, className: "top-[335px] left-[135px]" },
-  { number: 13, className: "top-[335px] left-[230px]" },
+  {
+    number: 5,
+    className:
+      "top-[65px] left-[75px]",
+  },
+  {
+    number: 6,
+    className:
+      "top-[155px] left-[30px]",
+  },
+  {
+    number: 7,
+    className:
+      "top-[155px] left-[130px]",
+  },
+  {
+    number: 8,
+    className:
+      "top-[155px] left-[230px]",
+  },
+  {
+    number: 9,
+    className:
+      "top-[245px] left-[180px]",
+  },
+  {
+    number: 10,
+    className:
+      "top-[245px] left-[80px]",
+  },
+  {
+    number: 11,
+    className:
+      "top-[335px] left-[30px]",
+  },
+  {
+    number: 12,
+    className:
+      "top-[335px] left-[135px]",
+  },
+  {
+    number: 13,
+    className:
+      "top-[335px] left-[230px]",
+  },
 ];
 
-const hasFinalConsonant = (word) => {
-  const lastChar = word[word.length - 1];
+const companionLabelMap = {
+  LOVER: "연인",
+  COWORKER: "직장동료",
+  FRIEND: "친구",
+  FAMILY: "가족/친척",
+  ACQUAINTANCE: "지인/모임",
+};
 
-  if (!/[가-힣]/.test(lastChar)) return false;
+const categoryLabelMap = {
+  DATE: "데이트",
+  MEETING: "미팅/면접",
+  SELF_CARE: "자기관리",
+  SELFCARE: "자기관리",
+  DRINKING: "술자리모임",
+  TRAVEL: "여행",
+  WEDDING: "결혼식",
+  EVENT: "이벤트",
+  TALK: "친목/수다",
+  CEREMONY: "행사",
+};
 
-  const code = lastChar.charCodeAt(0) - 0xac00;
+const getUserIdFromToken = (
+  accessToken,
+) => {
+  if (!accessToken) return null;
+
+  try {
+    const payload =
+      accessToken.split(".")[1];
+
+    const decodedPayload =
+      JSON.parse(atob(payload));
+
+    return Number(
+      decodedPayload.sub,
+    );
+  } catch (error) {
+    console.error(
+      "사용자 ID 확인 실패:",
+      error,
+    );
+
+    return null;
+  }
+};
+
+const hasFinalConsonant = (
+  word,
+) => {
+  const lastChar =
+    word[word.length - 1];
+
+  if (
+    !/[가-힣]/.test(lastChar)
+  ) {
+    return false;
+  }
+
+  const code =
+    lastChar.charCodeAt(0) -
+    0xac00;
 
   return code % 28 !== 0;
 };
 
-const getScheduleText = (person, schedule) => {
+const getScheduleText = (
+  person,
+  schedule,
+) => {
   if (schedule === "결혼식") {
     return `${person}의 ${schedule}`;
   }
 
-  const particle = hasFinalConsonant(person) ? "과" : "와";
+  const particle =
+    hasFinalConsonant(person)
+      ? "과"
+      : "와";
 
   return `${person}${particle} ${schedule}`;
 };
 
-const getScheduleIcon = (schedule) => {
+const getScheduleIcon = (
+  schedule,
+) => {
   switch (schedule) {
     case "여행":
       return travelIcon;
@@ -80,27 +183,61 @@ const getScheduleIcon = (schedule) => {
   }
 };
 
-function PeriodButton({ number, className, onClick, schedule }) {
-  const scheduleIcon = schedule ? getScheduleIcon(schedule.schedule) : null;
+const formatDate = (date) => {
+  const year =
+    date.getFullYear();
+
+  const month = String(
+    date.getMonth() + 1,
+  ).padStart(2, "0");
+
+  const day = String(
+    date.getDate(),
+  ).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+};
+
+function PeriodButton({
+  number,
+  className,
+  onClick,
+  schedule,
+}) {
+  const scheduleIcon =
+    schedule
+      ? getScheduleIcon(
+          schedule.schedule,
+        )
+      : null;
 
   return (
-    <div className={`absolute z-20 ${className} w-[60px] h-[60px]`}>
+    <div
+      className={`absolute z-20 ${className} w-[60px] h-[60px]`}
+    >
       <button
         type="button"
         onClick={onClick}
         className={`w-[60px] h-[60px] rounded-full bg-white border-[2px] flex items-center justify-center cursor-pointer ${
-          schedule ? "border-[#CFE8FF]" : "border-[#DBE7E8]"
+          schedule
+            ? "border-[#CFE8FF]"
+            : "border-[#DBE7E8]"
         }`}
       >
         <div
           className={`w-[50px] h-[50px] rounded-full flex items-center justify-center ${
-            schedule ? "bg-[#EAF8FF]" : "bg-[#DBE7E8]"
+            schedule
+              ? "bg-[#EAF8FF]"
+              : "bg-[#DBE7E8]"
           }`}
         >
-          {schedule && scheduleIcon ? (
+          {schedule &&
+          scheduleIcon ? (
             <img
               src={scheduleIcon}
-              alt={schedule.schedule}
+              alt={
+                schedule.schedule
+              }
               className="w-[34px] h-[34px] object-contain pointer-events-none"
             />
           ) : schedule ? (
@@ -118,12 +255,20 @@ function PeriodButton({ number, className, onClick, schedule }) {
       {schedule && (
         <div className="absolute z-30 top-[52px] left-1/2 -translate-x-1/2 min-w-[74px] rounded-[8px] border-[2px] border-[#DAEEFF] bg-white px-[6px] py-[3px] flex flex-col items-center pointer-events-none">
           <p className="text-[10px] font-semibold text-stone-950 leading-[12px]">
-            {String(schedule.month).padStart(2, "0")}.
-            {String(schedule.date).padStart(2, "0")}
+            {String(
+              schedule.month,
+            ).padStart(2, "0")}
+            .
+            {String(
+              schedule.date,
+            ).padStart(2, "0")}
           </p>
 
           <p className="whitespace-nowrap text-sm font-semibold text-stone-950 leading-[18px]">
-            {getScheduleText(schedule.person, schedule.schedule)}
+            {getScheduleText(
+              schedule.person,
+              schedule.schedule,
+            )}
           </p>
         </div>
       )}
@@ -134,14 +279,168 @@ function PeriodButton({ number, className, onClick, schedule }) {
 export default function Stamp() {
   const navigate = useNavigate();
 
-  const schedules = useScheduleStore((state) => state.schedules);
+  const accessToken =
+    useAuthStore(
+      (state) =>
+        state.accessToken,
+    );
 
-  const handlePeriodClick = (selectedDay) => {
-    navigate("/register-loading", {
-      state: {
-        selectedDay,
+  const [
+    schedules,
+    setSchedules,
+  ] = useState([]);
+
+  useEffect(() => {
+    const fetchSchedules =
+      async () => {
+        const userId =
+          getUserIdFromToken(
+            accessToken,
+          );
+
+        if (!userId) {
+          console.error(
+            "사용자 ID를 확인할 수 없습니다.",
+          );
+
+          return;
+        }
+
+        try {
+          const today =
+            new Date();
+
+          const scheduleRequests =
+            periodnumbers.map(
+              async ({
+                number,
+              }) => {
+                const targetDate =
+                  new Date(today);
+
+                targetDate.setDate(
+                  today.getDate() +
+                    (number - 4),
+                );
+
+                try {
+                  const response =
+                    await getSchedulesByDate(
+                      userId,
+                      formatDate(
+                        targetDate,
+                      ),
+                    );
+
+                  const data =
+                    Array.isArray(
+                      response,
+                    )
+                      ? response
+                      : response?.data ??
+                        [];
+
+                  if (
+                    data.length ===
+                    0
+                  ) {
+                    return null;
+                  }
+
+                  const schedule =
+                    data[0];
+
+                  return {
+                    scheduleId:
+                      schedule.scheduleId ??
+                      schedule.id,
+
+                    dayNumber:
+                      number,
+
+                    person:
+                      companionLabelMap[
+                        schedule
+                          .companion
+                      ] ??
+                      schedule
+                        .companion,
+
+                    schedule:
+                      categoryLabelMap[
+                        schedule
+                          .category
+                      ] ??
+                      schedule
+                        .category,
+
+                    month:
+                      targetDate.getMonth() +
+                      1,
+
+                    date:
+                      targetDate.getDate(),
+                  };
+                } catch (
+                  error
+                ) {
+                  console.error(
+                    `${formatDate(
+                      targetDate,
+                    )} 일정 조회 실패:`,
+                    error,
+                  );
+
+                  return null;
+                }
+              },
+            );
+
+          const result =
+            await Promise.all(
+              scheduleRequests,
+            );
+
+          setSchedules(
+            result.filter(Boolean),
+          );
+        } catch (error) {
+          console.error(
+            "스탬프 일정 조회 실패:",
+            error,
+          );
+        }
+      };
+
+    fetchSchedules();
+  }, [accessToken]);
+
+  const handlePeriodClick = (
+    selectedDay,
+    registeredSchedule,
+  ) => {
+    if (
+      registeredSchedule
+    ) {
+      navigate("/register", {
+        state: {
+          selectedDay,
+          schedule:
+            registeredSchedule,
+        },
+      });
+
+      return;
+    }
+
+    navigate(
+      "/register-loading",
+      {
+        state: {
+          selectedDay,
+        },
       },
-    });
+    );
   };
 
   return (
@@ -186,29 +485,51 @@ export default function Stamp() {
 
         <div className="absolute z-10 top-[65px] left-[180px] rounded-[50px] w-[60px] h-[60px] bg-white border-[2px] border-[#2E4972] flex items-center justify-center pointer-events-none">
           <div className="w-[50px] h-[50px] rounded-[50px] bg-[#2E4972] flex justify-center items-center">
-            <p className="text-white text-xl font-semibold">GO</p>
+            <p className="text-white text-xl font-semibold">
+              GO
+            </p>
           </div>
         </div>
 
-        {periodnumbers.map((number) => {
-          const registeredSchedule = schedules.find(
-            (schedule) => schedule.dayNumber === number.number,
-          );
+        {periodnumbers.map(
+          (number) => {
+            const registeredSchedule =
+              schedules.find(
+                (schedule) =>
+                  schedule.dayNumber ===
+                  number.number,
+              );
 
-          return (
-            <PeriodButton
-              key={number.number}
-              number={number.number}
-              className={number.className}
-              schedule={registeredSchedule}
-              onClick={() => handlePeriodClick(number.number)}
-            />
-          );
-        })}
+            return (
+              <PeriodButton
+                key={
+                  number.number
+                }
+                number={
+                  number.number
+                }
+                className={
+                  number.className
+                }
+                schedule={
+                  registeredSchedule
+                }
+                onClick={() =>
+                  handlePeriodClick(
+                    number.number,
+                    registeredSchedule,
+                  )
+                }
+              />
+            );
+          },
+        )}
 
         <div className="absolute z-10 top-[425px] left-[120px] rounded-[50px] w-[90px] h-[90px] bg-white border-[2px] border-[#64DDCD] flex items-center justify-center pointer-events-none">
           <div className="w-[80px] h-[80px] rounded-[50px] bg-[#64DDCD] flex justify-center items-center">
-            <p className="text-white text-4xl font-semibold">14</p>
+            <p className="text-white text-4xl font-semibold">
+              14
+            </p>
           </div>
         </div>
       </main>
