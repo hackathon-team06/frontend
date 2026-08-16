@@ -1,8 +1,14 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-/** 서버 값이 오기 전에 보여줄 초기 포인트. GET /api/users/me 응답이 오면 덮어씁니다. */
-export const INITIAL_POINT = 2179;
+/**
+ * 서버 값이 오기 전에 보여줄 초기 포인트.
+ *
+ * GET /api/users/me 의 totalPoint 가 이 값보다 크면 그 값으로 맞춥니다.
+ * 그래서 0 이어야 합니다. 예전처럼 큰 수를 넣어두면 서버 값이 더 작아서
+ * 영영 반영되지 않습니다.
+ */
+export const INITIAL_POINT = 0;
 
 /**
  * 보유 포인트.

@@ -33,8 +33,17 @@ const useUserStore = create((set, get) => ({
       set({ user, status: "idle" });
 
       // 포인트는 제품 화면에서도 쓰므로 전용 스토어로 옮겨둡니다.
+      //
+      // 서버 값이 지금 값보다 클 때만 반영합니다.
+      // 미션 완료로 받는 포인트(addPoint)는 아직 서버에 올리는 API 가 없어
+      // totalPoint 에 안 들어 있습니다. 그냥 덮어쓰면 미션으로 번 포인트가 사라집니다.
+      // TODO(백엔드 연동): 미션 완료 포인트가 서버에 쌓이면 이 비교를 빼고 그대로 씁니다.
       if (typeof user.totalPoint === "number") {
-        usePointStore.getState().setPoint(user.totalPoint);
+        const { point, setPoint } = usePointStore.getState();
+
+        if (user.totalPoint > point) {
+          setPoint(user.totalPoint);
+        }
       }
 
       return user;
