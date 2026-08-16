@@ -71,6 +71,7 @@ const getScheduleIcon = (schedule) => {
       return alcoholIcon;
 
     case "이벤트":
+    case "행사":
       return eventIcon;
 
     case "생일":
