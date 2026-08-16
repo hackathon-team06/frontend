@@ -34,3 +34,24 @@ export const saveMorningRoutineSurvey = async (items) => {
 
   return response.data;
 };
+
+// 아침 고정 미션 AI 추천
+export const getMorningRoutineRecommendations = async (categories = []) => {
+  const response = await api.post(
+    "/api/missions/morning-routine/recommendations",
+    {
+      categories,
+    },
+  );
+
+  return response.data;
+};
+
+// 아침 고정 미션 선택 및 확정
+export const saveMorningRoutine = async (items) => {
+  const response = await api.post("/api/missions/morning-routine", {
+    items,
+  });
+
+  return response.data;
+};
