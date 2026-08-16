@@ -1,11 +1,15 @@
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import useOnboardingStore from "../../store/useOnboardingStore";
-import useWishStore from "../../store/useWishStore";
 import usePointStore from "../../store/usePointStore";
-import { PRODUCTS, SKIN_TYPES, CATEGORIES } from "../../mocks/products";
-import { getPointPrice } from "../../constants/product";
+import { SKIN_TYPES, CATEGORIES } from "../../mocks/products";
+import {
+  getProducts,
+  getPointPrice,
+  likeProduct,
+  unlikeProduct,
+} from "../../api/shop";
 import PointBadge from "../../components/product/PointBadge";
 
 import heartFilled from "../../assets/icons/heart_filled.png";
@@ -14,33 +18,69 @@ import heartOutline from "../../assets/icons/heart_outline.svg";
 export default function Product() {
   const navigate = useNavigate();
 
-  // 온보딩에서 고른 피부 타입을 초기값으로 사용합니다.
-  // 온보딩을 건너뛰고 바로 들어온 경우를 위해 "지성"을 폴백으로 둡니다.
   const mySkinType = useOnboardingStore((state) => state.skinType);
-
-  // 찜 상태는 찜한 상품 화면과 공유하므로 스토어에서 가져옵니다.
-  const likedIds = useWishStore((state) => state.likedIds);
-  const toggleLike = useWishStore((state) => state.toggleLike);
-
   const point = usePointStore((state) => state.point);
 
   const [skinType, setSkinType] = useState(mySkinType || "지성");
   const [category, setCategory] = useState(CATEGORIES[0]);
+  const [products, setProducts] = useState([]);
 
-  const products = useMemo(
-    () =>
-      PRODUCTS.filter(
-        (product) =>
-          product.category === category && product.skinTypes.includes(skinType),
-      ),
-    [category, skinType],
-  );
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const data = await getProducts(skinType, category);
+
+        const productsWithPointPrice = await Promise.all(
+          data.map(async (product) => {
+            const pointPriceData = await getPointPrice(
+              product.productId,
+              point,
+            );
+
+            return {
+              ...product,
+              pointAppliedPrice: pointPriceData.pointAppliedPrice,
+            };
+          }),
+        );
+
+        setProducts(productsWithPointPrice);
+      } catch (error) {
+        console.log("상품 조회 실패: ", error);
+        setProducts([]);
+      }
+    };
+
+    fetchProducts();
+  }, [skinType, category, point]);
+
+  const handleToggleLike = async (product) => {
+    try {
+      if (product.liked) {
+        await unlikeProduct(product.productId);
+      } else {
+        await likeProduct(product.productId);
+      }
+
+      setProducts((prevProducts) =>
+        prevProducts.map((item) =>
+          item.productId === product.productId
+            ? { ...item, liked: !item.liked }
+            : item,
+        ),
+      );
+    } catch (error) {
+      console.log("상품 찜 실패: ", error);
+    }
+  };
 
   return (
     <div className="flex min-h-full flex-col bg-ink-50">
       {/* 헤더 */}
       <header className="flex items-end justify-between px-[19px] pt-[39px]">
-        <h1 className="logo-font text-[22px] text-mint-600">stay care</h1>
+        <h1 className="logo-font text-[22px] text-mint-600">
+          stay care
+        </h1>
 
         <button
           type="button"
@@ -50,17 +90,29 @@ export default function Product() {
           <span className="text-[16px] font-medium text-ink-900">
             찜한 상품
           </span>
-          <img src={heartFilled} alt="" className="size-[17px]" />
+
+          <img
+            src={heartFilled}
+            alt=""
+            className="size-[17px]"
+          />
         </button>
       </header>
 
+      {/* 포인트 */}
       <p className="mt-[17px] px-[19px] text-right text-[20px] font-semibold text-ink-900">
-        <span className="text-mint-600">{point.toLocaleString()}</span>P
+        <span className="text-mint-600">
+          {point.toLocaleString()}
+        </span>
+        P
       </p>
 
       {/* 피부 타입 필터 */}
       <section className="px-4">
-        <h2 className="text-[18px] font-semibold text-ink-900">피부 타입</h2>
+        <h2 className="text-[18px] font-semibold text-ink-900">
+          피부 타입
+        </h2>
+
         <div className="mt-[13px] flex gap-[10px]">
           {SKIN_TYPES.map((type) => {
             const selected = type === skinType;
@@ -123,12 +175,15 @@ export default function Product() {
           <ul className="mt-[20px] grid grid-cols-2 gap-x-[10px] gap-y-[17px] pb-[24px]">
             {products.map((product) => (
               <ProductCard
-                key={product.id}
+                key={product.productId}
                 product={product}
-                point={point}
-                liked={likedIds.includes(product.id)}
-                onToggleLike={() => toggleLike(product.id)}
-                onOpen={() => navigate(`/product/${product.id}`)}
+                liked={product.liked}
+                onToggleLike={() =>
+                  handleToggleLike(product)
+                }
+                onOpen={() =>
+                  navigate(`/product/${product.productId}`)
+                }
               />
             ))}
           </ul>
@@ -138,60 +193,79 @@ export default function Product() {
   );
 }
 
-function ProductCard({ product, point, liked, onToggleLike, onOpen }) {
-  const { name, isBest, price, discountRate, hasOptions, imageUrl } = product;
-
-  const pointPrice = getPointPrice(price, point);
+function ProductCard({
+  product,
+  liked,
+  onToggleLike,
+  onOpen,
+}) {
+  const {
+    name,
+    price,
+    discountRate,
+    imageUrl,
+    pointAppliedPrice,
+  } = product;
 
   return (
-    <li onClick={onOpen} className="flex cursor-pointer flex-col gap-[9px]">
+    <li
+      onClick={onOpen}
+      className="flex cursor-pointer flex-col gap-[9px]"
+    >
+      {/* 상품 이미지 */}
       <div className="h-[176px] w-full overflow-hidden rounded-[5px] bg-mint-50">
         {imageUrl && (
-          <img src={imageUrl} alt="" className="size-full object-cover" />
+          <img
+            src={imageUrl}
+            alt=""
+            className="size-full object-cover"
+          />
         )}
       </div>
 
       <div className="flex flex-col gap-[6px]">
         <div className="flex flex-col gap-[4px]">
+          {/* 상품명 */}
           <p className="text-[12px] font-medium leading-[1.3] tracking-[0.6px] text-ink-900">
-            {isBest && (
-              <>
-                <span className="font-bold">BEST</span>
-                <span className="text-ink-500"> ㅣ </span>
-              </>
-            )}
             {name}
           </p>
 
           <div>
+            {/* 할인율 / 가격 */}
             <div className="flex items-center gap-[2px] leading-[1.3]">
               {discountRate > 0 && (
                 <span className="text-[14px] font-semibold tracking-[-0.28px] text-sale">
                   {discountRate}%
                 </span>
               )}
+
               <span className="flex items-center text-ink-900">
                 <span className="text-[14px] font-semibold">
                   {price.toLocaleString()}
                 </span>
+
                 <span className="text-[12px] font-medium">
-                  {hasOptions ? "원~" : "원"}
+                  원
                 </span>
               </span>
             </div>
 
+            {/* 포인트 적용 가격 */}
             <div className="flex items-center gap-[4px]">
               <span className="text-[12px] font-medium leading-[20px] text-ink-900">
                 포인트 사용시
               </span>
+
               <span className="text-[12px] font-medium leading-[20px] text-mint-500">
-                {pointPrice.toLocaleString()}
+                {pointAppliedPrice.toLocaleString()}
               </span>
+
               <PointBadge />
             </div>
           </div>
         </div>
 
+        {/* 찜 버튼 */}
         <button
           type="button"
           onClick={(event) => {
@@ -203,9 +277,20 @@ function ProductCard({ product, point, liked, onToggleLike, onOpen }) {
           className="flex size-[20px] cursor-pointer items-center justify-center"
         >
           {liked ? (
-            <img src={heartFilled} alt="" className="size-[20px]" />
+            <img
+              src={heartFilled}
+              alt=""
+              className="size-[20px]"
+            />
           ) : (
-            <img src={heartOutline} alt="" style={{ width: 16, height: 15 }} />
+            <img
+              src={heartOutline}
+              alt=""
+              style={{
+                width: 16,
+                height: 15,
+              }}
+            />
           )}
         </button>
       </div>
