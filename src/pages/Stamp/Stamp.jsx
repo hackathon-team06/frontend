@@ -1,7 +1,6 @@
 import WeatherTipSection from "../../components/home/WeatherTipSection";
 import { weatherData } from "../../constants/home/weatherData";
 import WeekCalenderSection from "../../components/home/WeekCalendarSection";
-import { weekData } from "../../constants/home/weekData";
 import map from "../../assets/images/map.svg";
 import stamp from "../../assets/images/home_stamp.svg";
 import useScheduleStore from "../../store/useScheduleStore";
@@ -134,8 +133,6 @@ function PeriodButton({ number, className, onClick, schedule }) {
 }
 
 export default function Stamp() {
-  const today = "2026-07-30";
-
   const navigate = useNavigate();
 
   const schedules = useScheduleStore((state) => state.schedules);
@@ -152,7 +149,7 @@ export default function Stamp() {
     <div>
       <WeatherTipSection weather={weatherData} />
 
-      <WeekCalenderSection weekData={weekData} today={today} />
+      <WeekCalenderSection />
 
       <p className="text-stone-950 text-lg font-medium mt-[30px] ml-[18px]">
         목표까지{" "}
