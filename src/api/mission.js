@@ -25,3 +25,12 @@ export const getMorningRoutineOptions = async () => {
   const response = await api.get("/api/missions/morning-routine/options");
   return response.data;
 };
+
+// 아침 생활 루틴 설문 저장
+export const saveMorningRoutineSurvey = async (items) => {
+  const response = await api.post("/api/missions/morning-routine/survey", {
+    items,
+  });
+
+  return response.data;
+};
