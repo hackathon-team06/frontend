@@ -4,7 +4,10 @@ import registerCalendar from "../../assets/images/register_calendar.svg";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState } from "react";
 
-import { createSchedule } from "../../api/schedule";
+import {
+  createSchedule,
+  updateSchedule,
+} from "../../api/schedule";
 
 function OptionButton({ title, onClick, isSelected }) {
   return (
@@ -24,14 +27,14 @@ function OptionButton({ title, onClick, isSelected }) {
   );
 }
 
-function RegisterButton({ onClick }) {
+function RegisterButton({ onClick, title }) {
   return (
     <div
       className="fixed bottom-[29px] left-1/2 -translate-x-1/2"
       onClick={onClick}
     >
       <button className="cursor-pointer w-[332px] h-[52px] bg-emerald-300 rounded-[20px] text-white text-lg font-semibold">
-        일정 등록하기
+        {title}
       </button>
     </div>
   );
@@ -70,30 +73,64 @@ const scheduleMap = {
 
 export default function Register() {
   const navigate = useNavigate();
-
   const { state } = useLocation();
 
   const selectedDay = state?.selectedDay;
+  const registeredSchedule = state?.schedule;
 
-  const [selectedPerson, setSelectedPerson] = useState("");
-  const [selectedSchedule, setSelectedSchedule] = useState("");
+  const isEdit = Boolean(
+    registeredSchedule?.scheduleId,
+  );
+
+  const [selectedPerson, setSelectedPerson] =
+    useState(
+      registeredSchedule?.person ?? "",
+    );
+
+  const [selectedSchedule, setSelectedSchedule] =
+    useState(
+      registeredSchedule?.schedule ?? "",
+    );
 
   const goDay = 4;
 
-  const daysToAdd = selectedDay ? selectedDay - goDay : 0;
+  const daysToAdd = selectedDay
+    ? selectedDay - goDay
+    : 0;
 
   const today = new Date();
   const selectedDate = new Date(today);
-  selectedDate.setDate(today.getDate() + daysToAdd);
-  const month = selectedDate.getMonth() + 1;
-  const date = selectedDate.getDate();
-  const dayList = ["일", "월", "화", "수", "목", "금", "토"];
-  const day = dayList[selectedDate.getDay()];
+
+  selectedDate.setDate(
+    today.getDate() + daysToAdd,
+  );
+
+  const month =
+    selectedDate.getMonth() + 1;
+
+  const date =
+    selectedDate.getDate();
+
+  const dayList = [
+    "일",
+    "월",
+    "화",
+    "수",
+    "목",
+    "금",
+    "토",
+  ];
+
+  const day =
+    dayList[selectedDate.getDay()];
 
   const getPersonText = () => {
     if (!selectedPerson) return "";
 
-    if (selectedPerson === "직장동료" || selectedPerson === "친구") {
+    if (
+      selectedPerson === "직장동료" ||
+      selectedPerson === "친구"
+    ) {
       return `${selectedPerson}와의`;
     }
 
@@ -101,9 +138,18 @@ export default function Register() {
   };
 
   const getScheduleParticle = () => {
-    const useIe = ["미팅/면접", "술자리모임", "결혼식", "여행"];
+    const useIe = [
+      "미팅/면접",
+      "술자리모임",
+      "결혼식",
+      "여행",
+    ];
 
-    return useIe.includes(selectedSchedule) ? "이" : "가";
+    return useIe.includes(
+      selectedSchedule,
+    )
+      ? "이"
+      : "가";
   };
 
   const getScheduleHeadline = () => {
@@ -114,8 +160,10 @@ export default function Register() {
     if (!selectedSchedule) {
       return (
         <>
-          <span className="text-[#65DBBE]">{getPersonText()}</span> 일정이
-          잡혀있네요!
+          <span className="text-[#65DBBE]">
+            {getPersonText()}
+          </span>{" "}
+          일정이 잡혀있네요!
         </>
       );
     }
@@ -123,43 +171,76 @@ export default function Register() {
     return (
       <>
         <span className="text-[#65DBBE]">
-          {getPersonText()} {selectedSchedule}
+          {getPersonText()}{" "}
+          {selectedSchedule}
         </span>
-        {getScheduleParticle()} 잡혀있네요!
+        {getScheduleParticle()}{" "}
+        잡혀있네요!
       </>
     );
   };
 
   const formatDate = (date) => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
+    const year =
+      date.getFullYear();
+
+    const month = String(
+      date.getMonth() + 1,
+    ).padStart(2, "0");
+
+    const day = String(
+      date.getDate(),
+    ).padStart(2, "0");
 
     return `${year}-${month}-${day}`;
   };
 
   const handleRegister = async () => {
-    if (!selectedPerson || !selectedSchedule) {
-      alert("사람과 일정 옵션을 모두 선택해주세요!");
+    if (
+      !selectedPerson ||
+      !selectedSchedule
+    ) {
+      alert(
+        "사람과 일정 옵션을 모두 선택해주세요!",
+      );
 
       return;
     }
 
     const scheduleData = {
       title: `${selectedPerson} ${selectedSchedule}`,
-      startDate: formatDate(selectedDate),
-      endDate: formatDate(selectedDate),
+      startDate:
+        formatDate(selectedDate),
+      endDate:
+        formatDate(selectedDate),
       startTime: "09:00",
       endTime: "20:00",
-      companion: peopleMap[selectedPerson],
-      category: scheduleMap[selectedSchedule],
+      companion:
+        peopleMap[selectedPerson],
+      category:
+        scheduleMap[selectedSchedule],
     };
 
     try {
-      await createSchedule(scheduleData);
+      if (isEdit) {
+        await updateSchedule(
+          registeredSchedule.scheduleId,
+          scheduleData,
+        );
+      } else {
+        await createSchedule(
+          scheduleData,
+        );
+      }
+
       navigate("/stamp");
     } catch (error) {
-      console.error("일정 등록 실패: ", error);
+      console.error(
+        isEdit
+          ? "일정 수정 실패: "
+          : "일정 등록 실패: ",
+        error,
+      );
     }
   };
 
@@ -167,15 +248,23 @@ export default function Register() {
     <div>
       <img
         src={backButton}
+        alt="뒤로가기"
         className="ml-[14px] mt-[30px] cursor-pointer"
-        onClick={() => navigate(-1)}
+        onClick={() =>
+          navigate(-1)
+        }
       />
 
       <header className="flex flex-col mt-9 ml-4 gap-[6px]">
         <section className="flex gap-[4px] items-center">
-          <img src={registerCalendar} />
+          <img
+            src={registerCalendar}
+            alt="캘린더"
+          />
+
           <p className="text-[#A8A8A8] text-base font-medium">
-            {month}월 {date}일 {day}요일
+            {month}월 {date}일{" "}
+            {day}요일
           </p>
         </section>
 
@@ -186,45 +275,84 @@ export default function Register() {
 
       <main className="flex flex-col mt-[46px] ml-4 gap-[22px]">
         <p className="text-black text-lg font-bold">
-          누구랑 약속이 있으신가요?
+          누구랑 약속이
+          있으신가요?
         </p>
 
         <section className="flex flex-col gap-[10px]">
-          {peopleOptions.map((row, index) => (
-            <div key={index} className="flex gap-[10px]">
-              {row.map((option) => (
-                <OptionButton
-                  key={option}
-                  title={option}
-                  onClick={() => setSelectedPerson(option)}
-                  isSelected={selectedPerson === option}
-                />
-              ))}
-            </div>
-          ))}
+          {peopleOptions.map(
+            (row, index) => (
+              <div
+                key={index}
+                className="flex gap-[10px]"
+              >
+                {row.map(
+                  (option) => (
+                    <OptionButton
+                      key={option}
+                      title={option}
+                      onClick={() =>
+                        setSelectedPerson(
+                          option,
+                        )
+                      }
+                      isSelected={
+                        selectedPerson ===
+                        option
+                      }
+                    />
+                  ),
+                )}
+              </div>
+            ),
+          )}
         </section>
       </main>
 
       <main className="flex flex-col mt-[46px] ml-4 gap-[22px]">
-        <p className="text-black text-lg font-bold">어떤 일정이 있으신가요?</p>
+        <p className="text-black text-lg font-bold">
+          어떤 일정이
+          있으신가요?
+        </p>
 
         <section className="flex flex-col gap-[10px]">
-          {scheduleOptions.map((row, index) => (
-            <div key={index} className="flex gap-[10px]">
-              {row.map((option) => (
-                <OptionButton
-                  key={option}
-                  title={option}
-                  onClick={() => setSelectedSchedule(option)}
-                  isSelected={selectedSchedule === option}
-                />
-              ))}
-            </div>
-          ))}
+          {scheduleOptions.map(
+            (row, index) => (
+              <div
+                key={index}
+                className="flex gap-[10px]"
+              >
+                {row.map(
+                  (option) => (
+                    <OptionButton
+                      key={option}
+                      title={option}
+                      onClick={() =>
+                        setSelectedSchedule(
+                          option,
+                        )
+                      }
+                      isSelected={
+                        selectedSchedule ===
+                        option
+                      }
+                    />
+                  ),
+                )}
+              </div>
+            ),
+          )}
         </section>
       </main>
 
-      <RegisterButton onClick={handleRegister} />
+      <RegisterButton
+        onClick={handleRegister}
+        title={
+          isEdit
+            ? "일정 수정하기"
+            : "일정 등록하기"
+        }
+      />
     </div>
   );
 }
