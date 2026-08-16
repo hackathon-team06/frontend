@@ -15,10 +15,3 @@ export async function login() {
   // { accessToken, refreshToken, tokenType, userId }
   return res.data;
 }
-
-/** 내 정보 조회 */
-export async function getMe() {
-  const res = await api.get("/api/users/me");
-
-  return res.data;
-}
