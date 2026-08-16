@@ -63,7 +63,7 @@ export default function RoutineStep({ onNext, onBack, disabled = false, errorMes
       )}
 
       <OnboardingButton
-        title={disabled ? "저장 중..." : "다음"}
+        title="다음"
         onClick={onNext}
         disabled={disabled}
       />

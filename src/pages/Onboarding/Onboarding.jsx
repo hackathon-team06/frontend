@@ -52,12 +52,14 @@ export default function Onboarding() {
     setErrorMessage("");
     setPage(7); // 로딩 화면
 
-    try {
-      await Promise.all([
-        createDiagnosis(toDiagnosisRequest(onboarding)),
-        wait(2000),
-      ]);
-    } catch {
+    // Promise.all 은 요청이 실패하는 즉시 거부해서 최소 노출 시간이 무시됩니다.
+    // allSettled 로 둘 다 끝나기를 기다려야 성공이든 실패든 로딩이 깜빡이지 않습니다.
+    const [saved] = await Promise.allSettled([
+      createDiagnosis(toDiagnosisRequest(onboarding)),
+      wait(2000),
+    ]);
+
+    if (saved.status === "rejected") {
       setErrorMessage("저장에 실패했어요. 잠시 후 다시 시도해주세요.");
       setPage(6);
       setIsSubmitting(false);
