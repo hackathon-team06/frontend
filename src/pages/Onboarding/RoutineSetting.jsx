@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import OnboardingButton from "../../components/common/OnboardingButton/OnboardingButton";
-import { getMorningRoutineOptions } from "../../api/mission";
+import { getMorningRoutineOptions, saveMorningRoutineSurvey } from "../../api/mission";
 
 export default function RoutineSetting() {
   const location = useLocation();
@@ -12,10 +12,8 @@ export default function RoutineSetting() {
     location.state?.selectedRoutines ?? [];
 
   const [isOpen, setIsOpen] = useState(false);
-
   const [routineOptions, setRoutineOptions] = useState([]);
   const [maxSelections, setMaxSelections] = useState(3);
-
   const [customRoutines, setCustomRoutines] = useState([]);
 
   const totalCount =
@@ -30,8 +28,7 @@ export default function RoutineSetting() {
   useEffect(() => {
     const fetchRoutineOptions = async () => {
       try {
-        const data =
-          await getMorningRoutineOptions();
+        const data = await getMorningRoutineOptions();
 
         setRoutineOptions(data.items);
         setMaxSelections(data.maxSelections);
@@ -49,11 +46,9 @@ export default function RoutineSetting() {
   const handleRoutineSelect = (routine) => {
     if (remainingCount === 0) return;
 
-    const isAlreadyAdded =
-      customRoutines.some(
-        (item) =>
-          item.code === routine.code,
-      );
+    const isAlreadyAdded = customRoutines.some(
+      (item) => item.code === routine.code,
+    );
 
     if (isAlreadyAdded) return;
 
@@ -68,25 +63,52 @@ export default function RoutineSetting() {
   const handleRoutineDelete = (routine) => {
     setCustomRoutines((prev) =>
       prev.filter(
-        (item) =>
-          item.code !== routine.code,
+        (item) => item.code !== routine.code,
       ),
     );
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (totalCount !== maxSelections) return;
 
-    const finalRoutines = [
-      ...selectedRecommendedRoutines,
-      ...customRoutines,
+    const recommendedCodes = selectedRecommendedRoutines
+      .map((label) =>
+        routineOptions.find(
+          (routine) => routine.label === label,
+        )?.code,
+      )
+      .filter(Boolean);
+
+    const customCodes = customRoutines.map(
+      (routine) => routine.code,
+    );
+
+    const selectedCodes = [
+      ...recommendedCodes,
+      ...customCodes,
     ];
 
-    navigate("/onboarding/complete", {
-      state: {
-        routines: finalRoutines,
-      },
-    });
+    try {
+      await saveMorningRoutineSurvey(selectedCodes);
+
+      const finalRoutines = [
+        ...selectedRecommendedRoutines,
+        ...customRoutines.map(
+          (routine) => routine.label,
+        ),
+      ];
+
+      navigate("/onboarding/complete", {
+        state: {
+          routines: finalRoutines,
+        },
+      });
+    } catch (error) {
+      console.error(
+        "아침 생활 루틴 설문 저장 실패:",
+        error,
+      );
+    }
   };
 
   return (
@@ -151,20 +173,16 @@ export default function RoutineSetting() {
             "
           >
             {routineOptions.map((routine) => {
-              const isAdded =
-                customRoutines.some(
-                  (item) =>
-                    item.code === routine.code,
-                );
+              const isAdded = customRoutines.some(
+                (item) => item.code === routine.code,
+              );
 
               return (
                 <button
                   key={routine.code}
                   disabled={isAdded}
                   onClick={() =>
-                    handleRoutineSelect(
-                      routine,
-                    )
+                    handleRoutineSelect(routine)
                   }
                   className={`
                     w-full
