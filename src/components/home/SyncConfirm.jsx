@@ -3,16 +3,37 @@ import SyncImage from "../../assets/images/google_calendar_sync.svg";
 import Twinkle from "../../assets/icons/twinkle_icon.svg";
 import Rhombus from "../../assets/icons/rhombus_icon.svg";
 import BigBtn from "./BigBtn";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import useCalendarStore from "../../store/useGoogleCalendarStore";
+import { getConnectUrl } from "../../api/googleCalendar";
 
 export default function SyncConfirm() {
   const navigate = useNavigate();
-  const connect = useCalendarStore((state) => state.connect);
 
-  const handleSyncBtn = () => {
-    connect();
-    navigate("/home");
+  const [isLoading, setIsLoading] = useState(false);
+  const [hasError, setHasError] = useState(false);
+
+  /**
+   * 구글 동의 화면으로 보냅니다.
+   *
+   * 여기서 연동 상태를 바꾸지 않습니다. 아직 연동된 게 아니라 시작만 한 것이고,
+   * 실제 연동 여부는 돌아올 때 주소의 calendar 파라미터로 알 수 있습니다.
+   */
+  const handleSyncBtn = async () => {
+    if (isLoading) return;
+
+    setIsLoading(true);
+    setHasError(false);
+
+    try {
+      const { authorizationUrl } = await getConnectUrl();
+
+      // 앱 안에서의 이동이 아니라 구글로 아예 나가는 것이라 navigate 를 쓰지 않습니다.
+      window.location.href = authorizationUrl;
+    } catch {
+      setHasError(true);
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -70,8 +91,17 @@ export default function SyncConfirm() {
         >
           나중에 연동할게요
         </button>
+
+        {hasError && (
+          <p className="text-center text-xs font-medium text-sale">
+            연동을 시작하지 못했어요. 잠시 후 다시 시도해주세요.
+          </p>
+        )}
       </div>
-      <BigBtn text="구글캘린더와 연동하기" onClick={handleSyncBtn} />
+      <BigBtn
+        text={isLoading ? "연동 준비 중..." : "구글캘린더와 연동하기"}
+        onClick={handleSyncBtn}
+      />
     </div>
   );
 }
