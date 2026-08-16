@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 import WeatherTipSection from "../../components/home/WeatherTipSection";
 import WeekCalenderSection from "../../components/home/WeekCalendarSection";
@@ -21,13 +21,39 @@ import usePointStore from "../../store/usePointStore";
 
 
 function Home() {
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const connect = useGoogleCalendarStore((state) => state.connect);
+
   const clearJustConnected = useGoogleCalendarStore(
     (state) => state.clearJustConnected,
   );
 
+  // 구글 동의를 마치면 백엔드가 ?calendar=connected 를 붙여 여기로 돌려보냅니다.
+  // 외부에서 들어오는 전체 페이지 로드라 스토어는 초기 상태이고,
+  // 연동이 됐는지는 주소로만 알 수 있습니다. 그래서 첫 렌더에서 주소를 바로 읽습니다.
   const [showOverlay, setShowOverlay] = useState(
-    () => useGoogleCalendarStore.getState().justConnected,
+    () =>
+      useGoogleCalendarStore.getState().justConnected ||
+      searchParams.get("calendar") === "connected",
   );
+
+  useEffect(() => {
+    const result = searchParams.get("calendar");
+
+    if (!result) return;
+
+    if (result === "connected") {
+      connect();
+    }
+
+    // 실패(calendar=failed)는 사용자가 동의 화면에서 취소한 경우가 대부분이라
+    // 따로 알리지 않습니다. 함께 오는 message 는 "유효하지 않은 state 입니다" 같은
+    // 개발자용 문구라 사용자에게 보여줄 내용이 아닙니다.
+    //
+    // 새로고침할 때 오버레이가 다시 뜨지 않도록 주소에서 지웁니다.
+    setSearchParams({}, { replace: true });
+  }, [searchParams, setSearchParams, connect]);
 
   useEffect(() => {
     clearJustConnected();
