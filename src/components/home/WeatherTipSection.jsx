@@ -41,7 +41,7 @@ export default function WeatherTipSection() {
   }
 
   return (
-    <div className="flex items-center gap-25 pt-4.75 ">
+    <div className="flex items-center gap-25 pt-4.75 pr-7">
       <div className="flex-col pl-8.25 ">
         <div className="text-cyan-900 text-xs font-semibold">
           {weather?.messageTitle}
