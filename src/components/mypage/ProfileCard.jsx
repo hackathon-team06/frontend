@@ -3,12 +3,13 @@ import pencil from "../../assets/icons/pencil.svg";
 
 /** 마이페이지 프로필 카드. */
 export default function ProfileCard({ profile, onEditNickname }) {
-  const { nickname, age, skinTypeLabel, goal, progressDay } = profile;
+  const { nickname, age, skinTypeLabel, goal, progressDay, profileImageUrl } =
+    profile;
 
   return (
     <section className="relative h-[134px] w-[352px] rounded-[15px] border border-[#dbe7e8] bg-white shadow-[0px_-1px_5px_0px_rgba(101,219,190,0.3)]">
       <img
-        src={profileDefault}
+        src={profileImageUrl || profileDefault}
         alt=""
         className="absolute left-[18px] top-[23px] size-[45px] rounded-full object-cover"
       />

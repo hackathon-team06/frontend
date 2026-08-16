@@ -5,7 +5,7 @@
  * 백엔드 연동 시 이 파일만 교체하면 됩니다.
  * 아래 세 함수가 같은 모양의 값을 돌려주기만 하면 화면 코드는 그대로 씁니다.
  *
- *   getMyProfile()                          → 프로필
+ *   toProfile()                              → 프로필
  *   getStamps()                             → 스탬프(코스) 목록
  *   getStampCalendar(stampId, year, month)  → 월별 캘린더 + 요약
  * ─────────────────────────────────────────────────────────────
@@ -72,14 +72,34 @@ function statusOf(stampId, year, month, day) {
   return "none"; // 미참여
 }
 
-export function getMyProfile({ nickname, age, skinType, purpose } = {}) {
+/**
+ * 서버 UserResponse 를 프로필 카드가 쓰는 모양으로 바꿉니다.
+ *
+ * fallback 은 온보딩 스토어 값입니다. 서버 조회가 실패했거나
+ * 아직 진단하지 않아 값이 비어 있을 때 대신 씁니다.
+ */
+export function toProfile(user, fallback = {}) {
+  const server = user ?? {};
+
   return {
-    nickname: nickname || DEFAULT_NICKNAME,
-    age: age || 24,
+    // 닉네임 수정 API 를 연동하지 않아 서버에는 저장되지 않습니다.
+    // 로컬에서 바꾼 값을 먼저 보여줘야 수정이 반영된 것처럼 보입니다.
+    nickname: fallback.nickname || server.nickname || DEFAULT_NICKNAME,
+
+    age: server.age ?? fallback.age ?? 24,
+
     // 온보딩은 "지성"처럼 저장하고 화면에는 "지성피부"로 보여줍니다.
-    skinTypeLabel: `${skinType || "지성"}피부`,
-    goal: purpose || "촉촉한 피부",
-    // 가장 최근 진행 중인 코스의 경과 일수
+    skinTypeLabel: `${server.skinType || fallback.skinType || "지성"}피부`,
+
+    // 목표 수정 API 를 쓰지 않아 server.goal 은 관리되지 않는 값입니다.
+    // (테스트 계정에는 "123" 이 들어 있습니다)
+    // 온보딩에서 고른 careMotivation 이 사용자가 의도한 값입니다.
+    goal:
+      server.careMotivation || fallback.purpose || server.goal || "촉촉한 피부",
+
+    profileImageUrl: server.profileImageUrl || null,
+
+    // TODO(백엔드 연동): 코스 경과 일수 API 가 없어 고정값입니다.
     progressDay: 3,
   };
 }

@@ -3,7 +3,7 @@ import RoutineOption from "../../../components/common/RoutineOption/RoutineOptio
 import OnboardingButton from "../../../components/common/OnboardingButton/OnboardingButton";
 import useOnboardingStore from "../../../store/useOnboardingStore";
 
-export default function RoutineStep({ onNext, onBack }) {
+export default function RoutineStep({ onNext, onBack, disabled = false, errorMessage = "" }) {
 
   const selectedDay = useOnboardingStore((state) => state.routine);
   const setSelectedDay = useOnboardingStore((state) => state.setRoutine);
@@ -56,7 +56,17 @@ export default function RoutineStep({ onNext, onBack }) {
           ))}
         </section>
       </main>
-      <OnboardingButton title="다음" onClick={onNext}/>
+      {errorMessage && (
+        <p className="absolute bottom-[110px] w-full text-center text-[13px] font-medium text-sale">
+          {errorMessage}
+        </p>
+      )}
+
+      <OnboardingButton
+        title="다음"
+        onClick={onNext}
+        disabled={disabled}
+      />
     </div>
   );
 }
