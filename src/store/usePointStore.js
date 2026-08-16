@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
-/** 시작 포인트. 백엔드 연동 시 서버에서 받아온 값으로 교체합니다. */
+/** 서버 값이 오기 전에 보여줄 초기 포인트. GET /api/users/me 응답이 오면 덮어씁니다. */
 export const INITIAL_POINT = 2179;
 
 /**
@@ -19,6 +19,9 @@ const usePointStore = create(
       // 함수
       addPoint: (amount) =>
         set((state) => ({ point: state.point + amount })),
+
+      // 서버에서 받은 누적 포인트로 맞춥니다. (useUserStore.fetchUser 가 호출)
+      setPoint: (point) => set({ point }),
     }),
     {
       name: "point-storage",
