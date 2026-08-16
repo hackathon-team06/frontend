@@ -1,10 +1,8 @@
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import useWishStore from "../../store/useWishStore";
-import usePointStore from "../../store/usePointStore";
-import { PRODUCTS } from "../../mocks/products";
-import { WISHLIST_CATEGORIES, getPointPrice } from "../../constants/product";
+import { getLikedProducts, unlikeProduct } from "../../api/shop";
+import { WISHLIST_CATEGORIES } from "../../constants/product";
 import PointBadge from "../../components/product/PointBadge";
 import ClearWishModal from "../../components/product/ClearWishModal";
 
@@ -13,28 +11,40 @@ import arrowBack from "../../assets/icons/arrow_back.svg";
 export default function Wishlist() {
   const navigate = useNavigate();
 
-  const likedIds = useWishStore((state) => state.likedIds);
-  const clearAll = useWishStore((state) => state.clearAll);
-
-  const point = usePointStore((state) => state.point);
-
   const [category, setCategory] = useState(null);
+  const [products, setProducts] = useState([]);
+  const [hasAnyLiked, setHasAnyLiked] = useState(false);
   const [isClearModalOpen, setIsClearModalOpen] = useState(false);
 
-  // 찜한 상품을 상품 목록 순서대로 보여줍니다.
-  const products = useMemo(
-    () =>
-      PRODUCTS.filter(
-        (product) =>
-          likedIds.includes(product.id) &&
-          (category === null || product.category === category),
-      ),
-    [likedIds, category],
-  );
+  useEffect(() => {
+    const fetchLikedProducts = async () => {
+      try {
+        const data = await getLikedProducts(category);
+        setProducts(data);
 
-  const handleClear = () => {
-    clearAll();
-    setIsClearModalOpen(false);
+        if (category === null) {
+          setHasAnyLiked(data.length > 0);
+        }
+      } catch (error) {
+        console.log("찜한 상품 조회 실패: ", error);
+      }
+    };
+
+    fetchLikedProducts();
+  }, [category]);
+
+  const handleClear = async () => {
+    try {
+      await Promise.all(
+        products.map((product) => unlikeProduct(product.productId)),
+      );
+
+      setProducts([]);
+      setHasAnyLiked(false);
+      setIsClearModalOpen(false);
+    } catch (error) {
+      console.log("찜한 상품 전체 삭제 실패: ", error);
+    }
   };
 
   return (
@@ -47,7 +57,11 @@ export default function Wishlist() {
           aria-label="뒤로 가기"
           className="absolute left-[23px] top-[25px] z-10 flex h-[36px] w-[18px] cursor-pointer items-center justify-center"
         >
-          <img src={arrowBack} alt="" style={{ width: 10.7, height: 19.46 }} />
+          <img
+            src={arrowBack}
+            alt=""
+            style={{ width: 10.7, height: 19.46 }}
+          />
         </button>
 
         <h1 className="pointer-events-none absolute top-[36px] w-full text-center text-[18px] font-medium text-ink-900">
@@ -87,7 +101,7 @@ export default function Wishlist() {
         <button
           type="button"
           onClick={() => setIsClearModalOpen(true)}
-          disabled={likedIds.length === 0}
+          disabled={products.length === 0}
           className="cursor-pointer text-[12px] font-medium tracking-[0.6px] text-ink-900 disabled:cursor-default disabled:text-ink-300"
         >
           전체삭제
@@ -98,15 +112,14 @@ export default function Wishlist() {
 
       {/* 찜한 상품 목록 */}
       {products.length === 0 ? (
-        <EmptyState hasAnyLiked={likedIds.length > 0} />
+        <EmptyState hasAnyLiked={hasAnyLiked} />
       ) : (
         <ul className="flex flex-col gap-[21px] pb-[24px] pt-[12px]">
           {products.map((product) => (
             <WishlistItem
-              key={product.id}
+              key={product.productId}
               product={product}
-              point={point}
-              onOpen={() => navigate(`/product/${product.id}`)}
+              onOpen={() => navigate(`/product/${product.productId}`)}
             />
           ))}
         </ul>
@@ -122,25 +135,32 @@ export default function Wishlist() {
   );
 }
 
-function WishlistItem({ product, point, onOpen }) {
-  const { name, isBest, price, discountRate, hasOptions, imageUrl } = product;
+function WishlistItem({ product, onOpen }) {
+  const {
+    name,
+    price,
+    discountRate,
+    imageUrl,
+    pointAppliedPrice,
+  } = product;
 
   return (
-    <li onClick={onOpen} className="flex cursor-pointer gap-[14px] px-[21px]">
+    <li
+      onClick={onOpen}
+      className="flex cursor-pointer gap-[14px] px-[21px]"
+    >
       <div className="size-[75px] shrink-0 overflow-hidden rounded-[5px] bg-mint-50">
         {imageUrl && (
-          <img src={imageUrl} alt="" className="size-full object-cover" />
+          <img
+            src={imageUrl}
+            alt=""
+            className="size-full object-cover"
+          />
         )}
       </div>
 
       <div className="flex h-[75px] flex-1 flex-col justify-between pr-[18px]">
         <p className="line-clamp-2 text-[12px] font-medium leading-[1.3] tracking-[0.6px] text-ink-900">
-          {isBest && (
-            <>
-              <span className="font-bold">BEST</span>
-              <span className="text-ink-500"> ㅣ </span>
-            </>
-          )}
           {name}
         </p>
 
@@ -155,15 +175,17 @@ function WishlistItem({ product, point, onOpen }) {
             <span className="text-[14px] font-semibold">
               {price.toLocaleString()}
             </span>
+
             <span className="text-[12px] font-medium">
-              {hasOptions ? "원~" : "원"}
+              원
             </span>
           </span>
 
           <span className="ml-auto flex items-center gap-[4px]">
             <span className="text-[14px] font-medium leading-[20px] text-mint-500">
-              {getPointPrice(price, point).toLocaleString()}
+              {pointAppliedPrice.toLocaleString()}
             </span>
+
             <PointBadge />
           </span>
         </div>
@@ -180,6 +202,7 @@ function EmptyState({ hasAnyLiked }) {
           ? "이 카테고리에 찜한 상품이 없어요"
           : "아직 찜한 상품이 없어요"}
       </p>
+
       <p className="text-[12px] font-medium text-ink-500">
         {hasAnyLiked
           ? "다른 카테고리를 눌러보세요"
