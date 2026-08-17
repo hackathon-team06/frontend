@@ -1,4 +1,6 @@
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
+
 import {
   morningMissionData,
   eveningMissionData,
@@ -38,7 +40,16 @@ const replaceRemovedMissions = (missions, recommendedMissions) => {
   });
 };
 
-const useMissionStore = create((set) => ({
+/**
+ * 미션 상태.
+ *
+ * 포인트 지급 이력만 localStorage 에 저장합니다. 미션 목록과 완료 체크는
+ * 저장하지 않습니다. 서버 미션을 연동하면 목록은 서버가 진실이 되고,
+ * 완료 여부도 stepId 기준으로 다시 잡아야 하기 때문입니다.
+ */
+const useMissionStore = create(
+  persist(
+    (set) => ({
   morningMissions: morningMissionData,
   eveningMissions: eveningMissionData,
 
@@ -56,18 +67,46 @@ const useMissionStore = create((set) => ({
   pendingMissions: [],
   pendingRecommendedMissions: [],
 
-  // 이미 포인트를 준 미션 세트. 체크를 풀었다 다시 눌러도 중복 적립하지 않습니다.
-  awardedTabs: [],
+  // 포인트 지급 이력을 남긴 날짜(yyyy-MM-dd).
+  //
+  // 이력은 localStorage 에 저장해서 새로고침해도 중복 적립되지 않게 합니다.
+  // 다만 미션 id 가 목데이터라 매일 똑같아서, 날짜 없이 저장하면 내일도 모레도
+  // 포인트를 못 받게 됩니다. 그래서 날짜를 함께 두고 오늘 것만 유효하게 봅니다.
+  //
+  // TODO(백엔드 연동): 서버 미션을 쓰면 키가 stepId 라 날마다 달라지므로
+  // 이 날짜 처리는 걷어내고 이력만 저장하면 됩니다.
+  awardedDate: null,
+
+  // 이미 포인트를 준 미션. "morning-1" 처럼 탭 이름을 붙여 기록합니다.
+  //
+  // 아침과 저녁 미션의 id 가 둘 다 1, 2, 3 이라 id 만으로는 구분되지 않습니다.
+  // 체크를 풀었다 다시 눌러도 여기 남아 있어 중복 적립되지 않습니다.
+  awardedMissionKeys: [],
+
+  // 아침·저녁을 모두 끝냈을 때 주는 보너스 2점의 지급 여부
+  bonusAwarded: false,
 
   setMissionsByType: (missionType, missions) =>
     set({
       [getMissionKey(missionType)]: missions,
     }),
 
-  addAwardedTab: (missionType) =>
-    set((state) => ({
-      awardedTabs: [...state.awardedTabs, missionType],
-    })),
+  // 지급 이력을 남깁니다. 저장된 이력이 어제 것이면 버리고 오늘 것부터 다시 셉니다.
+  addAwardedMissionKey: (missionKey, today) =>
+    set((state) => {
+      const isToday = state.awardedDate === today;
+
+      return {
+        awardedDate: today,
+        awardedMissionKeys: isToday
+          ? [...state.awardedMissionKeys, missionKey]
+          : [missionKey],
+        bonusAwarded: isToday ? state.bonusAwarded : false,
+      };
+    }),
+
+  markBonusAwarded: (today) =>
+    set({ awardedDate: today, bonusAwarded: true }),
 
   // 오늘 저녁 미션을 받았다고 표시합니다. 인자는 yyyy-MM-dd 문자열입니다.
   markEveningMissionsSet: (dateKey) => set({ eveningSetDate: dateKey }),
@@ -96,6 +135,16 @@ const useMissionStore = create((set) => ({
       pendingMissions: [],
       pendingRecommendedMissions: [],
     }),
-}));
+    }),
+    {
+      name: "mission-storage",
+      partialize: (state) => ({
+        awardedDate: state.awardedDate,
+        awardedMissionKeys: state.awardedMissionKeys,
+        bonusAwarded: state.bonusAwarded,
+      }),
+    },
+  ),
+);
 
 export default useMissionStore;
