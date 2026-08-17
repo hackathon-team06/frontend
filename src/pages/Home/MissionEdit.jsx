@@ -5,6 +5,7 @@ import MissionSection from "../../components/home/MissionSection";
 import MissionCategorySection from "../../components/home/MissionCategorySection";
 import { recommendedMissionData } from "../../constants/home/recommendedMissionData";
 import useMissionStore from "../../store/useMissionStore";
+import { formatApiDate } from "../../utils/getDate";
 
 import backButton from "../../assets/images/back_button.svg";
 
@@ -42,7 +43,11 @@ export default function MissionEdit() {
     (state) => state.eveningMissions,
   );
 
-  const awardedTabs = useMissionStore((state) => state.awardedTabs);
+  const awardedDate = useMissionStore((state) => state.awardedDate);
+
+  const awardedMissionKeys = useMissionStore(
+    (state) => state.awardedMissionKeys,
+  );
 
   const setPendingMissionSelection = useMissionStore(
     (state) => state.setPendingMissionSelection,
@@ -68,8 +73,14 @@ export default function MissionEdit() {
   const currentMissions =
     activeTab === "morning" ? morningMissions : eveningMissions;
 
-  // 포인트를 받은 탭은 수정 불가
-  const isTabLocked = awardedTabs.includes(activeTab);
+  // 포인트를 받은 탭은 수정 불가.
+  // 미션 하나만 체크해도 그 순간 1점을 받으므로 그때부터 잠깁니다.
+  // (수정을 허용하면 미션을 갈아끼우며 점수를 반복해서 받을 수 있습니다)
+  //
+  // 지급 이력은 오늘 것일 때만 봅니다. 어제 이력으로 오늘까지 잠그면 안 됩니다.
+  const isTabLocked =
+    awardedDate === formatApiDate() &&
+    awardedMissionKeys.some((key) => key.startsWith(`${activeTab}-`));
 
   const morningRemovedCount = morningMissions.filter(
     (mission) => mission.removed,

@@ -20,6 +20,9 @@ import useMissionStore from "../../store/useMissionStore";
 import usePointStore from "../../store/usePointStore";
 import { formatApiDate } from "../../utils/getDate";
 
+/** 아침·저녁 미션을 모두 끝냈을 때 얹어주는 보너스 점수. */
+const FULL_COMPLETION_BONUS = 2;
+
 
 function Home() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -74,11 +77,27 @@ function Home() {
 
   const morningMissions = useMissionStore((state) => state.morningMissions);
   const eveningMissions = useMissionStore((state) => state.eveningMissions);
-  const awardedTabs = useMissionStore((state) => state.awardedTabs);
+  const awardedDate = useMissionStore((state) => state.awardedDate);
+
+  const awardedMissionKeys = useMissionStore(
+    (state) => state.awardedMissionKeys,
+  );
+
+  const bonusAwarded = useMissionStore((state) => state.bonusAwarded);
+
+  // 저장된 지급 이력은 오늘 것일 때만 유효합니다.
+  // 날이 바뀌면 같은 미션이라도 포인트를 다시 받을 수 있어야 합니다.
+  const isAwardedToday = awardedDate === formatApiDate();
+  const awardedKeysToday = isAwardedToday ? awardedMissionKeys : [];
+  const isBonusAwardedToday = isAwardedToday && bonusAwarded;
 
   const setMissionsByType = useMissionStore((state) => state.setMissionsByType);
 
-  const addAwardedTab = useMissionStore((state) => state.addAwardedTab);
+  const addAwardedMissionKey = useMissionStore(
+    (state) => state.addAwardedMissionKey,
+  );
+
+  const markBonusAwarded = useMissionStore((state) => state.markBonusAwarded);
 
   const showMissionSelection = useMissionStore(
     (state) => state.showMissionSelection,
@@ -122,14 +141,33 @@ function Home() {
 
     setMissionsByType(tab, next);
 
-    const isAllCompleted = next.every((mission) => mission.completed);
+    const checked = next.find((mission) => mission.id === id);
+    const missionKey = `${tab}-${id}`;
+    const today = formatApiDate();
 
-    if (isAllCompleted && !awardedTabs.includes(tab)) {
-      const earned = next.reduce((sum, mission) => sum + mission.point, 0);
+    // 미션 하나를 완료할 때마다 1점씩 줍니다.
+    // 체크를 풀어도 회수하지 않고, 키가 남아 있어 다시 눌러도 중복 지급되지 않습니다.
+    if (checked.completed && !awardedKeysToday.includes(missionKey)) {
+      addPoint(checked.point);
+      addAwardedMissionKey(missionKey, today);
+    }
 
-      addPoint(earned);
-      addAwardedTab(tab);
-      setEarnedPoint(earned);
+    // 아침·저녁을 모두 끝내면 보너스 2점을 얹고, 그때 한 번만 축하 효과를 띄웁니다.
+    const nextMorning = tab === "morning" ? next : morningMissions;
+    const nextEvening = tab === "evening" ? next : eveningMissions;
+
+    const isAllDone = [...nextMorning, ...nextEvening].every(
+      (mission) => mission.completed,
+    );
+
+    if (isAllDone && !isBonusAwardedToday) {
+      addPoint(FULL_COMPLETION_BONUS);
+      markBonusAwarded(today);
+
+      const dailyTotal =
+        nextMorning.length + nextEvening.length + FULL_COMPLETION_BONUS;
+
+      setEarnedPoint(dailyTotal);
     }
   };
 
