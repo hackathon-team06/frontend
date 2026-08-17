@@ -3,7 +3,6 @@ import cloud from "../../assets/icons/cloud_icon.svg";
 import rain from "../../assets/icons/rain_icon.svg";
 import snowy from "../../assets/icons/snowy_icon.svg";
 
-
 export const weatherIcons = {
   CLEAR: sunny,
 

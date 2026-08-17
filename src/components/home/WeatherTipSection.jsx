@@ -19,8 +19,7 @@ export default function WeatherTipSection() {
         }
       })
       .catch((error) => {
-        // 못 받아와도 빈 자리만 두고 화면은 살려둡니다.
-        console.warn("날씨 정보를 불러오지 못했어요.", error);
+        console.error("날씨 조회 실패:", error);
       });
 
     return () => {
@@ -34,8 +33,7 @@ export default function WeatherTipSection() {
     weatherIcon = weatherIcons[weather.condition];
 
     if (!weatherIcon) {
-      // 어떤 값이 안 잡혔는지 남겨두면 나중에 아이콘을 더 그릴 때 참고가 됩니다.
-      console.warn("아이콘이 없는 날씨예요.", weather.condition);
+      console.warn("매핑되지 않은 날씨:", weather.condition);
       weatherIcon = DEFAULT_WEATHER_ICON;
     }
   }
