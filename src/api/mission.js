@@ -54,3 +54,9 @@ export const getTodayMissions = async () => {
   const response = await api.get("/api/missions/today");
   return response.data;
 };
+
+// 오늘 아침 미션 생성 또는 조회
+export const createMorningMission = async () => {
+  const response = await api.post("/api/missions/morning");
+  return response.data;
+};
