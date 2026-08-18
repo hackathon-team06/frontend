@@ -73,6 +73,12 @@ const useMissionStore = create(
           ),
         }),
 
+      // 저녁 미션만 반영. setTodayMissions 는 아침까지 덮어씀
+      setEveningMission: (mission) =>
+        set({
+          eveningMissions: convertTodayMission(mission, eveningMissionData),
+        }),
+
       eveningSetDate: null,
 
       showMissionSelection: false,

@@ -66,3 +66,15 @@ export const createMorningMission = async () => {
   const response = await api.post("/api/missions/morning");
   return response.data;
 };
+
+// 저녁 상태 입력 후 저녁 미션 생성
+export const createEveningMission = async (conditions) => {
+  const response = await api.post("/api/missions/evening", { conditions });
+  return response.data;
+};
+
+// 미션 step 완료 처리
+export const completeMissionStep = async (stepId) => {
+  const response = await api.patch(`/api/missions/steps/${stepId}`);
+  return response.data;
+};

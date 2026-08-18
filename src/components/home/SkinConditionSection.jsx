@@ -12,13 +12,21 @@ const skinConditionIconMap = {
   LONG_MAKEUP: "lipstick",
 };
 
+// 해당사항 없음. 다른 상태와 같이 보내면 서버가 400 을 냄
+const NONE = "NONE";
+
 function SkinConditionSection({ selected, setSelected, conditions }) {
   const onClickBtn = (code) => {
-    setSelected((prev) =>
-      prev.includes(code)
-        ? prev.filter((value) => value !== code)
-        : [...prev, code],
-    );
+    setSelected((prev) => {
+      if (prev.includes(code)) {
+        return prev.filter((value) => value !== code);
+      }
+
+      // 해당사항 없음은 단독 선택만 가능
+      if (code === NONE) return [NONE];
+
+      return [...prev.filter((value) => value !== NONE), code];
+    });
   };
 
   return (
