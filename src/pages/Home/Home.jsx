@@ -24,10 +24,12 @@ import {
   createEveningMission,
   createMorningMission,
   getMissionOptions,
+  getMorningRoutine,
   getTodayMissions,
 } from "../../api/mission";
 
 import { formatApiDate } from "../../utils/getDate";
+import { toCategoryByContent } from "../../utils/missionIcon";
 
 const FULL_COMPLETION_BONUS = 2;
 
@@ -186,7 +188,17 @@ function Home() {
           }
         }
 
-        setTodayMissions({ ...data, morningMission });
+        // 아침 미션 아이콘은 고정 아침 미션의 category 로 정합니다.
+        // 조회에 실패해도 문장에서 짐작하므로 화면은 그대로 뜹니다.
+        let categoryByContent = {};
+
+        try {
+          categoryByContent = toCategoryByContent(await getMorningRoutine());
+        } catch (error) {
+          console.error("고정 아침 미션 조회 실패:", error);
+        }
+
+        setTodayMissions({ ...data, morningMission }, categoryByContent);
       } catch (error) {
         console.error("오늘 미션 조회 실패:", error);
       }
