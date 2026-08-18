@@ -1,5 +1,4 @@
-//요일 유틸 함수
-
+// 요일 유틸 함수
 export const getDate = (dateString) => {
   const days = ["일", "월", "화", "수", "목", "금", "토"];
   return days[new Date(dateString).getDay()];
@@ -13,4 +12,21 @@ export const formatApiDate = (date = new Date()) => {
   const day = String(date.getDate()).padStart(2, "0");
 
   return `${year}-${month}-${day}`;
+};
+
+// 화면 표시용 현재 날짜 + 시간
+export const formatCurrentDateTime = (date = new Date()) => {
+  const formattedDate = date.toLocaleDateString("ko-KR", {
+    month: "long",
+    day: "numeric",
+    weekday: "long",
+  });
+
+  const formattedTime = date.toLocaleTimeString("ko-KR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+
+  return `${formattedDate} ${formattedTime}`;
 };
