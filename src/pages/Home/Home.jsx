@@ -18,7 +18,12 @@ import useGoogleCalendarStore from "../../store/useGoogleCalendarStore";
 import useLayoutStore from "../../store/useLayoutStore";
 import useMissionStore from "../../store/useMissionStore";
 import usePointStore from "../../store/usePointStore";
-import { getMissionOptions } from "../../api/mission";
+
+import {
+  getMissionOptions,
+  getTodayMissions,
+} from "../../api/mission";
+
 import { formatApiDate } from "../../utils/getDate";
 
 const FULL_COMPLETION_BONUS = 2;
@@ -27,6 +32,7 @@ function Home() {
   const [searchParams, setSearchParams] = useSearchParams();
 
   const connect = useGoogleCalendarStore((state) => state.connect);
+
   const clearJustConnected = useGoogleCalendarStore(
     (state) => state.clearJustConnected,
   );
@@ -53,7 +59,10 @@ function Home() {
     clearJustConnected();
   }, [clearJustConnected]);
 
-  const hideSyncOverlay = useCallback(() => setShowOverlay(false), []);
+  const hideSyncOverlay = useCallback(() => {
+    setShowOverlay(false);
+  }, []);
+
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState("morning");
@@ -62,29 +71,53 @@ function Home() {
   const [earnedPoint, setEarnedPoint] = useState(null);
 
   const setHideFooter = useLayoutStore((state) => state.setHideFooter);
+
   const addPoint = usePointStore((state) => state.addPoint);
 
-  const morningMissions = useMissionStore((state) => state.morningMissions);
-  const eveningMissions = useMissionStore((state) => state.eveningMissions);
-  const awardedDate = useMissionStore((state) => state.awardedDate);
+  const morningMissions = useMissionStore(
+    (state) => state.morningMissions,
+  );
+
+  const eveningMissions = useMissionStore(
+    (state) => state.eveningMissions,
+  );
+
+  const setTodayMissions = useMissionStore(
+    (state) => state.setTodayMissions,
+  );
+
+  const awardedDate = useMissionStore(
+    (state) => state.awardedDate,
+  );
 
   const awardedMissionKeys = useMissionStore(
     (state) => state.awardedMissionKeys,
   );
 
-  const bonusAwarded = useMissionStore((state) => state.bonusAwarded);
+  const bonusAwarded = useMissionStore(
+    (state) => state.bonusAwarded,
+  );
 
   const isAwardedToday = awardedDate === formatApiDate();
-  const awardedKeysToday = isAwardedToday ? awardedMissionKeys : [];
-  const isBonusAwardedToday = isAwardedToday && bonusAwarded;
 
-  const setMissionsByType = useMissionStore((state) => state.setMissionsByType);
+  const awardedKeysToday = isAwardedToday
+    ? awardedMissionKeys
+    : [];
+
+  const isBonusAwardedToday =
+    isAwardedToday && bonusAwarded;
+
+  const setMissionsByType = useMissionStore(
+    (state) => state.setMissionsByType,
+  );
 
   const addAwardedMissionKey = useMissionStore(
     (state) => state.addAwardedMissionKey,
   );
 
-  const markBonusAwarded = useMissionStore((state) => state.markBonusAwarded);
+  const markBonusAwarded = useMissionStore(
+    (state) => state.markBonusAwarded,
+  );
 
   const showMissionSelection = useMissionStore(
     (state) => state.showMissionSelection,
@@ -94,85 +127,157 @@ function Home() {
     (state) => state.pendingMissionType,
   );
 
-  const pendingMissions = useMissionStore((state) => state.pendingMissions);
+  const pendingMissions = useMissionStore(
+    (state) => state.pendingMissions,
+  );
 
   const recommendedMissions = useMissionStore(
     (state) => state.pendingRecommendedMissions,
   );
 
-  const applyMissionEdit = useMissionStore((state) => state.applyMissionEdit);
+  const applyMissionEdit = useMissionStore(
+    (state) => state.applyMissionEdit,
+  );
 
   const clearPendingMissionSelection = useMissionStore(
     (state) => state.clearPendingMissionSelection,
   );
 
-  const eveningSetDate = useMissionStore((state) => state.eveningSetDate);
+  const eveningSetDate = useMissionStore(
+    (state) => state.eveningSetDate,
+  );
 
   const markEveningMissionsSet = useMissionStore(
     (state) => state.markEveningMissionsSet,
   );
 
-  const isEveningMissionSet = eveningSetDate === formatApiDate();
-  const isSetUpMode = activeTab === "evening" && !isEveningMissionSet;
+  const isEveningMissionSet =
+    eveningSetDate === formatApiDate();
+
+  const isSetUpMode =
+    activeTab === "evening" && !isEveningMissionSet;
+
+  // 오늘 미션 조회
+  useEffect(() => {
+    const fetchTodayMissions = async () => {
+      try {
+        const data = await getTodayMissions();
+
+        console.log("오늘 미션 조회:", data);
+
+        setTodayMissions(data);
+      } catch (error) {
+        console.error("오늘 미션 조회 실패:", error);
+      }
+    };
+
+    fetchTodayMissions();
+  }, [setTodayMissions]);
 
   // 미션 공통 옵션 조회
   useEffect(() => {
     const fetchMissionOptions = async () => {
       try {
         const data = await getMissionOptions();
-        setEveningConditions(data.eveningConditions ?? []);
+
+        setEveningConditions(
+          data.eveningConditions ?? [],
+        );
       } catch (error) {
-        console.error("미션 공통 옵션 조회 실패:", error);
+        console.error(
+          "미션 공통 옵션 조회 실패:",
+          error,
+        );
       }
     };
 
     fetchMissionOptions();
   }, []);
 
-  const handleMissionCheckBtn = (id, missions, tab) => {
+  const handleMissionCheckBtn = (
+    id,
+    missions,
+    tab,
+  ) => {
     const next = missions.map((mission) =>
       mission.id === id
-        ? { ...mission, completed: !mission.completed }
+        ? {
+            ...mission,
+            completed: !mission.completed,
+          }
         : mission,
     );
 
     setMissionsByType(tab, next);
 
-    const checked = next.find((mission) => mission.id === id);
+    const checked = next.find(
+      (mission) => mission.id === id,
+    );
+
     const missionKey = `${tab}-${id}`;
     const today = formatApiDate();
 
-    if (checked.completed && !awardedKeysToday.includes(missionKey)) {
+    if (
+      checked.completed &&
+      !awardedKeysToday.includes(missionKey)
+    ) {
       addPoint(checked.point);
-      addAwardedMissionKey(missionKey, today);
+
+      addAwardedMissionKey(
+        missionKey,
+        today,
+      );
     }
 
-    const nextMorning = tab === "morning" ? next : morningMissions;
-    const nextEvening = tab === "evening" ? next : eveningMissions;
+    const nextMorning =
+      tab === "morning"
+        ? next
+        : morningMissions;
 
-    const isAllDone = [...nextMorning, ...nextEvening].every(
-      (mission) => mission.completed,
-    );
+    const nextEvening =
+      tab === "evening"
+        ? next
+        : eveningMissions;
 
-    if (isAllDone && !isBonusAwardedToday) {
+    const isAllDone = [
+      ...nextMorning,
+      ...nextEvening,
+    ].every((mission) => mission.completed);
+
+    if (
+      isAllDone &&
+      !isBonusAwardedToday
+    ) {
       addPoint(FULL_COMPLETION_BONUS);
+
       markBonusAwarded(today);
 
       const dailyTotal =
-        nextMorning.length + nextEvening.length + FULL_COMPLETION_BONUS;
+        nextMorning.length +
+        nextEvening.length +
+        FULL_COMPLETION_BONUS;
 
       setEarnedPoint(dailyTotal);
     }
   };
 
-  const closeCelebration = useCallback(() => setEarnedPoint(null), []);
+  const closeCelebration = useCallback(() => {
+    setEarnedPoint(null);
+  }, []);
 
   const handleSetMissions = () => {
-    markEveningMissionsSet(formatApiDate());
+    markEveningMissionsSet(
+      formatApiDate(),
+    );
   };
 
   const handleConfirmMissions = () => {
-    applyMissionEdit(pendingMissionType, pendingMissions, recommendedMissions);
+    applyMissionEdit(
+      pendingMissionType,
+      pendingMissions,
+      recommendedMissions,
+    );
+
     clearPendingMissionSelection();
   };
 
@@ -181,7 +286,13 @@ function Home() {
     const missions = pendingMissions;
 
     clearPendingMissionSelection();
-    navigate("/edit", { state: { missionType, missions } });
+
+    navigate("/edit", {
+      state: {
+        missionType,
+        missions,
+      },
+    });
   };
 
   useEffect(() => {
@@ -196,6 +307,7 @@ function Home() {
     <div>
       <div className="relative">
         <WeatherTipSection />
+
         <WeekCalenderSection />
 
         {showMissionSelection && (
@@ -207,14 +319,21 @@ function Home() {
         )}
       </div>
 
-      <MissionNavBar activeTab={activeTab} setActiveTab={setActiveTab} />
+      <MissionNavBar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+      />
 
       {activeTab === "morning" ? (
         <>
           <MissionSection
             missionData={morningMissions}
             onClick={(id) =>
-              handleMissionCheckBtn(id, morningMissions, "morning")
+              handleMissionCheckBtn(
+                id,
+                morningMissions,
+                "morning",
+              )
             }
           />
 
@@ -222,7 +341,9 @@ function Home() {
 
           <StampProgressBtn
             title="스탬프 진행도"
-            onClick={() => navigate("/stamp")}
+            onClick={() =>
+              navigate("/stamp")
+            }
           />
         </>
       ) : isEveningMissionSet ? (
@@ -230,7 +351,11 @@ function Home() {
           <MissionSection
             missionData={eveningMissions}
             onClick={(id) =>
-              handleMissionCheckBtn(id, eveningMissions, "evening")
+              handleMissionCheckBtn(
+                id,
+                eveningMissions,
+                "evening",
+              )
             }
           />
 
@@ -238,7 +363,9 @@ function Home() {
 
           <StampProgressBtn
             title="스탬프 진행도"
-            onClick={() => navigate("/stamp")}
+            onClick={() =>
+              navigate("/stamp")
+            }
           />
         </>
       ) : (
@@ -251,11 +378,18 @@ function Home() {
             conditions={eveningConditions}
           />
 
-          <BigBtn text="맞춤 미션 받기" onClick={handleSetMissions} />
+          <BigBtn
+            text="맞춤 미션 받기"
+            onClick={handleSetMissions}
+          />
         </>
       )}
 
-      {showOverlay && <SyncCompleteOverlay onDone={hideSyncOverlay} />}
+      {showOverlay && (
+        <SyncCompleteOverlay
+          onDone={hideSyncOverlay}
+        />
+      )}
 
       {earnedPoint !== null && (
         <CelebrationOverlay

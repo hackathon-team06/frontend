@@ -48,3 +48,9 @@ export const getMissionOptions = async () => {
   const response = await api.get("/api/missions/options");
   return response.data;
 };
+
+// 오늘 미션 조회
+export const getTodayMissions = async () => {
+  const response = await api.get("/api/missions/today");
+  return response.data;
+};
