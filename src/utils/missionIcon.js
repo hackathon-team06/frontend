@@ -4,21 +4,20 @@ import { missionCategoryData } from "../constants/home/missionCategoryData";
  * 미션 아이콘 정하기.
  *
  * 서버는 미션 문장만 주고 아이콘 정보를 주지 않습니다.
- * 아침 미션은 고정 아침 미션에 category 가 남아 있어 그것으로 정하고,
- * 저녁 미션은 AI 가 매번 새 문장을 만들어 카테고리가 없으므로 문장에서 짐작합니다.
+ * 그래서 문장에 들어간 단어로 아이콘을 고릅니다.
  *
- * 아이콘은 모두 카테고리 이모지 9종에서 고릅니다.
- * assets 의 svg 는 목데이터 미션 6개에 맞춰 만든 것이라 서버가 만드는 문장을
- * 덮지 못하고, 일부만 svg 를 쓰면 한 화면에서 이모지와 그림이 섞입니다.
+ * 카테고리(수분/보습, 식습관/영양 ...)는 9개뿐이라 미션 하나하나를 나타내기엔
+ * 너무 큽니다. "식습관/영양" 에는 영양제도 채소도 들어가는데 카테고리 이모지
+ * 하나(🥗)로 묶으면 "영양제 챙겨먹기" 가 샐러드가 됩니다.
+ * 그래서 문장을 먼저 보고, 단서를 못 찾은 아침 미션만 카테고리로 채웁니다.
  *
  * MissionItem 은 missionIcons 에 없는 값이면 문자열을 그대로 그리므로
  * 이모지를 그냥 넘기면 됩니다.
  */
 
 /**
- * 카테고리를 못 찾았을 때 쓰는 아이콘.
+ * 아무 단서도 못 찾았을 때 쓰는 아이콘.
  *
- * 카테고리 9종 안에서 고릅니다. 밖의 기호를 쓰면 이것만 튀어 보입니다.
  * 진정/장벽은 어떤 스킨케어 문장에 붙어도 어색하지 않아 기본값으로 씁니다.
  */
 export const DEFAULT_MISSION_ICON = "🌱";
@@ -28,50 +27,71 @@ const emojiByCategory = Object.fromEntries(
   missionCategoryData.map((category) => [category.name, category.emoji]),
 );
 
-const emojiOf = (categoryName) => emojiByCategory[categoryName];
 
 /**
- * 문장에서 카테고리를 짐작하기 위한 키워드.
+ * 문장에 들어간 단어로 고르는 아이콘.
  *
  * 위에 있는 것부터 확인하므로 좁은 뜻을 앞에 둡니다.
- * "쿨링 패드로 진정" 은 크림·보습보다 "진정" 에 먼저 걸려야 하고,
- * "취침 전 스트레칭" 은 수면보다 "스트레칭" 에 먼저 걸려야 합니다.
+ * "세안 후 보습제를 바르기" 는 조건(세안)이 아니라 행동(보습)을 봐야 하고,
+ * "취침 전 스트레칭" 은 수면보다 스트레칭에 먼저 걸려야 합니다.
  *
- * TODO(백엔드 연동): 저녁 미션 step 에도 category 가 붙으면 이 추측은 걷어냅니다.
+ * 이모지는 추천 미션(recommendedMissionData)이 쓰는 것과 맞췄습니다.
+ *
+ * TODO(백엔드 연동): 미션 step 에 아이콘이나 세부 분류가 붙으면 이 추측은 걷어냅니다.
  */
 const ICON_RULES = [
-  { category: "운동/스트레칭", words: ["스트레칭", "운동", "걷기", "산책"] },
-  { category: "자외선 차단", words: ["자외선", "선크림", "차단제"] },
+  { icon: "💊", words: ["영양제", "비타민", "아연", "유산균", "챙겨먹"] },
+  { icon: "🏃", words: ["스트레칭", "운동", "걷기", "산책"] },
+  { icon: "☀️", words: ["자외선", "선크림", "차단제"] },
+  { icon: "💆", words: ["마사지", "붓기", "림프", "지압"] },
+  { icon: "🧊", words: ["쿨링", "진정", "열감", "붉", "팩"] },
+  { icon: "🥗", words: ["채소", "과일", "샐러드", "식사", "식단"] },
+  { icon: "📱", words: ["휴대폰", "핸드폰", "화면"] },
   {
-    category: "진정/장벽",
-    words: ["진정", "쿨링", "열감", "붉", "마사지", "붓기", "장벽", "팩"],
+    icon: "💧",
+    words: [
+      "보습",
+      "수분",
+      "토너",
+      "세럼",
+      "에센스",
+      "크림",
+      "물 한 컵",
+      "물 마시",
+    ],
   },
-  {
-    category: "식습관/영양",
-    words: ["영양제", "비타민", "아연", "채소", "과일", "식사", "챙겨먹"],
-  },
-  {
-    category: "수분/보습",
-    words: ["보습", "수분", "토너", "세럼", "에센스", "크림", "물 한 컵", "물 마시"],
-  },
-  { category: "수면/휴식", words: ["수면", "취침", "잠들", "휴식", "호흡"] },
-    // "수건" 은 세안 문장에도 자주 붙어서 뺐습니다 ("수건으로 톡톡 말리기")
-  { category: "위생 관리", words: ["베개", "이불", "환기", "습도", "청소"] },
-  { category: "세안/클렌징", words: ["세안", "클렌", "씻", "닦"] },
+  { icon: "😴", words: ["수면", "취침", "잠들", "휴식", "호흡"] },
+  // "수건" 은 세안 문장에도 자주 붙어서 뺐습니다 ("수건으로 톡톡 말리기")
+  { icon: "🛏️", words: ["베개", "이불", "환기", "습도", "청소"] },
+  { icon: "🧼", words: ["세안", "클렌", "씻", "닦"] },
 ];
 
-/** 미션 문장에서 아이콘을 짐작합니다. */
-export function guessIconFromContent(content = "") {
+/** 문장에서 아이콘을 찾습니다. 단서가 없으면 null 입니다. */
+function matchIconFromContent(content = "") {
   const matched = ICON_RULES.find((rule) =>
     rule.words.some((word) => content.includes(word)),
   );
 
-  return matched ? emojiOf(matched.category) : DEFAULT_MISSION_ICON;
+  return matched ? matched.icon : null;
 }
 
-/** 카테고리 한글 라벨에 맞는 이모지를 돌려줍니다. 없으면 문장에서 짐작합니다. */
+/** 저녁 미션처럼 카테고리가 없는 미션의 아이콘. */
+export function guessIconFromContent(content = "") {
+  return matchIconFromContent(content) ?? DEFAULT_MISSION_ICON;
+}
+
+/**
+ * 아침 미션 아이콘.
+ *
+ * 문장이 카테고리보다 구체적이라 문장을 먼저 보고,
+ * 단서가 없을 때만 카테고리 이모지로 채웁니다.
+ */
 export function iconFromCategory(category, content = "") {
-  return emojiOf(category) ?? guessIconFromContent(content);
+  return (
+    matchIconFromContent(content) ??
+    emojiByCategory[category] ??
+    DEFAULT_MISSION_ICON
+  );
 }
 
 /**
