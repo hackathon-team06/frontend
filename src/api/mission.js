@@ -42,3 +42,9 @@ export const saveMorningRoutine = async (items) => {
 
   return response.data;
 };
+
+// 미션 공통 옵션 조회
+export const getMissionOptions = async () => {
+  const response = await api.get("/api/missions/options");
+  return response.data;
+};
