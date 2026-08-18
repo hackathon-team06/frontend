@@ -2,40 +2,54 @@ import { missionIcons } from "../../constants/home/missionIcons";
 import MissionCheckBtn from "./MissionCheckBtn";
 import MissionRemoveBtn from "./MissionRemoveBtn";
 
-function MissionItem({ mission, onClick, isEdit = false, isLocked = false }) {
-  // 추천 미션은 아이콘이 이모지라 매핑에 없음
+function MissionItem({
+  mission,
+  onClick,
+  isEdit = false,
+  isLocked = false,
+}) {
   const iconSrc = missionIcons[mission.icon];
-
-  // 포인트를 받은 탭이거나 이미 완료한 미션은 제거 불가
   const isRemoveDisabled = isLocked || mission.completed;
 
   return (
-    <div className="flex items-center py-3">
+    <div className="flex items-start py-3">
       <div
-        className={`size-8 rounded-[20px] outline-1 outline-zinc-300 flex justify-center items-center mr-1 ${
+        className={`mr-2 mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-[20px] outline-1 outline-zinc-300 ${
           isEdit && mission.removed ? "opacity-40 grayscale" : ""
         }`}
       >
         {iconSrc ? (
-          <img src={iconSrc} alt={mission.icon} className="w-4 h-4" />
+          <img
+            src={iconSrc}
+            alt={mission.icon}
+            className="h-4 w-4"
+          />
         ) : (
-          <span className="text-sm leading-none">{mission.icon}</span>
+          <span className="text-sm leading-none">
+            {mission.icon}
+          </span>
         )}
       </div>
 
       <div
-        className={`flex-1 pl-1 ${
-          isEdit && mission.removed ? "text-[#A8A8A8] opacity-60" : ""
+        className={`min-w-0 flex-1 pr-2 ${
+          isEdit && mission.removed
+            ? "text-[#A8A8A8] opacity-60"
+            : ""
         }`}
       >
-        <p className="text-sm font-semibold">{mission.title}</p>
+        <p className="break-keep text-sm font-semibold leading-5">
+          {mission.title}
+        </p>
 
         {mission.subtitle && (
-          <p className="text-xs font-semibold">{mission.subtitle}</p>
+          <p className="mt-0.5 break-keep text-xs font-semibold leading-4">
+            {mission.subtitle}
+          </p>
         )}
       </div>
 
-      <div className="pr-6.5">
+      <div className="shrink-0 pr-6.5 pt-0.5">
         {isEdit ? (
           <MissionRemoveBtn
             removed={mission.removed}
