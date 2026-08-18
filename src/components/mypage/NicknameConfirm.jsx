@@ -4,7 +4,13 @@
  * 입력한 닉네임으로 정할지 한 번 더 묻습니다.
  * 뒤 화면이 비치도록 흐린 흰색을 덮습니다.
  */
-export default function NicknameConfirm({ nickname, onConfirm, onCancel }) {
+export default function NicknameConfirm({
+  nickname,
+  onConfirm,
+  onCancel,
+  isSaving = false,
+  errorMessage = "",
+}) {
   return (
     <div className="fixed inset-0 z-30 flex justify-center">
       <div className="relative h-full w-[390px] bg-white/30 backdrop-blur-[2px]">
@@ -17,18 +23,28 @@ export default function NicknameConfirm({ nickname, onConfirm, onCancel }) {
           </p>
         </div>
 
+        {errorMessage && (
+          <p className="absolute left-[35px] top-[275px] w-[320px] text-[12px] font-medium text-sale">
+            {errorMessage}
+          </p>
+        )}
+
         <div className="absolute bottom-[63px] left-[39px] flex gap-[14px]">
           <button
             type="button"
             onClick={onConfirm}
-            className="h-[52px] w-[130px] cursor-pointer rounded-[15px] bg-mint-500 text-[16px] font-semibold leading-[1.6] text-ink-50"
+            disabled={isSaving}
+            className={`h-[52px] w-[130px] rounded-[15px] bg-mint-500 text-[16px] font-semibold leading-[1.6] text-ink-50 ${
+              isSaving ? "cursor-not-allowed opacity-60" : "cursor-pointer"
+            }`}
           >
-            네 선택할게요
+            {isSaving ? "저장 중..." : "네 선택할게요"}
           </button>
 
           <button
             type="button"
             onClick={onCancel}
+            disabled={isSaving}
             className="h-[52px] w-[176px] cursor-pointer rounded-[15px] border border-[#2e4972] bg-ink-50 text-[16px] font-semibold leading-[1.6] text-[#2e4972]"
           >
             아뇨 다시 수정할래요

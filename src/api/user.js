@@ -6,3 +6,14 @@ export async function getMe() {
 
   return res.data;
 }
+
+/**
+ * 닉네임 수정. 2~20자여야 합니다.
+ *
+ * 갱신된 내 정보(UserResponse)를 그대로 돌려줍니다.
+ */
+export async function updateNickname(nickname) {
+  const res = await api.patch("/api/users/nickname", { nickname });
+
+  return res.data;
+}
