@@ -34,6 +34,12 @@ export const getMorningRoutineRecommendations = async (categories = []) => {
   return response.data;
 };
 
+// 현재 고정 아침 미션 조회
+export const getMorningRoutine = async () => {
+  const response = await api.get("/api/missions/morning-routine");
+  return response.data;
+};
+
 // 아침 고정 미션 선택 및 확정
 export const saveMorningRoutine = async (items) => {
   const response = await api.post("/api/missions/morning-routine", {
@@ -52,5 +58,11 @@ export const getMissionOptions = async () => {
 // 오늘 미션 조회
 export const getTodayMissions = async () => {
   const response = await api.get("/api/missions/today");
+  return response.data;
+};
+
+// 오늘 아침 미션 생성 또는 조회
+export const createMorningMission = async () => {
+  const response = await api.post("/api/missions/morning");
   return response.data;
 };

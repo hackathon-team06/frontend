@@ -3,9 +3,9 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import {
-  getMorningRoutineRecommendations,
-  saveMorningRoutine,
-} from "../../api/mission";
+  getMorningRoutineRecommendationsSafely,
+  saveMorningRoutineWithinLimit,
+} from "../../utils/mission";
 
 import loadingCharacter from "../../assets/images/loading_character.svg";
 
@@ -132,7 +132,7 @@ export default function Result() {
   useEffect(() => {
     const fetchRecommendations = async () => {
       try {
-        const data = await getMorningRoutineRecommendations([]);
+        const data = await getMorningRoutineRecommendationsSafely([]);
 
         const recommendations = (data.recommendations ?? []).map(
           (content) => ({
@@ -187,7 +187,7 @@ export default function Result() {
     const items = getSelectedRoutineItems();
 
     try {
-      await saveMorningRoutine(items);
+      await saveMorningRoutineWithinLimit(items);
 
       navigate("/onboarding/complete");
     } catch (error) {

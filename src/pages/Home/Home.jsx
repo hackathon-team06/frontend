@@ -20,6 +20,7 @@ import useMissionStore from "../../store/useMissionStore";
 import usePointStore from "../../store/usePointStore";
 
 import {
+  createMorningMission,
   getMissionOptions,
   getTodayMissions,
 } from "../../api/mission";
@@ -165,7 +166,18 @@ function Home() {
 
         console.log("오늘 미션 조회:", data);
 
-        setTodayMissions(data);
+        let { morningMission } = data;
+
+        // 오늘치가 없으면 생성
+        if (!morningMission) {
+          try {
+            morningMission = await createMorningMission();
+          } catch (error) {
+            console.error("오늘 아침 미션 생성 실패:", error);
+          }
+        }
+
+        setTodayMissions({ ...data, morningMission });
       } catch (error) {
         console.error("오늘 미션 조회 실패:", error);
       }
