@@ -3,10 +3,8 @@ import { useLocation, useNavigate } from "react-router-dom";
 
 import OnboardingButton from "../../components/common/OnboardingButton/OnboardingButton";
 
-import {
-  getMorningRoutineOptions,
-  saveMorningRoutine,
-} from "../../api/mission";
+import { getMorningRoutineOptions } from "../../api/mission";
+import { saveMorningRoutineWithinLimit } from "../../utils/mission";
 
 export default function RoutineSetting() {
   const location = useLocation();
@@ -98,7 +96,7 @@ export default function RoutineSetting() {
     ];
 
     try {
-      await saveMorningRoutine(items);
+      await saveMorningRoutineWithinLimit(items);
 
       navigate("/onboarding/complete", {
         state: {
