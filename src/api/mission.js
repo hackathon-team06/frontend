@@ -34,6 +34,15 @@ export const getMorningRoutineRecommendations = async (categories = []) => {
   return response.data;
 };
 
+// 고정 아침 미션 삭제. itemId 는 고정 아침 미션 조회 응답의 itemId 입니다
+export const deleteMorningRoutineItem = async (itemId) => {
+  const response = await api.delete(
+    `/api/missions/morning-routine/items/${itemId}`,
+  );
+
+  return response.data;
+};
+
 // 현재 고정 아침 미션 조회
 export const getMorningRoutine = async () => {
   const response = await api.get("/api/missions/morning-routine");
