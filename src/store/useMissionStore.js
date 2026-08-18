@@ -2,24 +2,32 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
 import {
-  morningMissionData,
-  eveningMissionData,
-} from "../constants/home/missionData";
+  guessIconFromContent,
+  iconFromCategory,
+} from "../utils/missionIcon";
 
 // 탭 이름 -> 미션 목록 키
 const getMissionKey = (missionType) =>
   missionType === "morning" ? "morningMissions" : "eveningMissions";
 
-// 오늘 미션 조회 API 응답을 화면에서 사용하는 미션 형태로 변환
-const convertTodayMission = (mission, fallbackData) => {
+// 미션 하나당 주는 포인트. 서버가 포인트를 내려주지 않아 프론트에서 정합니다
+const POINT_PER_MISSION = 1;
+
+// 오늘 미션 조회 API 응답을 화면에서 사용하는 미션 형태로 변환.
+//
+// 서버는 아이콘을 주지 않습니다.
+// 아침은 고정 아침 미션의 category 로, 저녁은 문장에서 짐작해 정합니다.
+const convertTodayMission = (mission, categoryByContent = {}) => {
   if (!mission) return [];
 
   return mission.steps.map((step, index) => ({
     id: mission.stepIds[index],
-    icon: fallbackData[index]?.icon,
+    icon: categoryByContent[step]
+      ? iconFromCategory(categoryByContent[step], step)
+      : guessIconFromContent(step),
     title: step,
     subtitle: "",
-    point: fallbackData[index]?.point ?? 1,
+    point: POINT_PER_MISSION,
     completed: false,
     removed: false,
   }));
@@ -60,23 +68,22 @@ const useMissionStore = create(
       morningMissions: [],
       eveningMissions: [],
 
-      // 오늘 미션 조회 API 응답 반영
-      setTodayMissions: (data) =>
+      // 오늘 미션 조회 API 응답 반영.
+      // categoryByContent 는 고정 아침 미션에서 뽑은 "문장 -> 카테고리" 로,
+      // 아침 미션 아이콘을 정하는 데 씁니다.
+      setTodayMissions: (data, categoryByContent = {}) =>
         set({
           morningMissions: convertTodayMission(
             data.morningMission,
-            morningMissionData,
+            categoryByContent,
           ),
-          eveningMissions: convertTodayMission(
-            data.eveningMission,
-            eveningMissionData,
-          ),
+          eveningMissions: convertTodayMission(data.eveningMission),
         }),
 
       // 저녁 미션만 반영. setTodayMissions 는 아침까지 덮어씀
       setEveningMission: (mission) =>
         set({
-          eveningMissions: convertTodayMission(mission, eveningMissionData),
+          eveningMissions: convertTodayMission(mission),
         }),
 
       eveningSetDate: null,
