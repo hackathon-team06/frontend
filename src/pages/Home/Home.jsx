@@ -20,6 +20,8 @@ import useMissionStore from "../../store/useMissionStore";
 import usePointStore from "../../store/usePointStore";
 
 import {
+  completeMissionStep,
+  createEveningMission,
   createMorningMission,
   getMissionOptions,
   getTodayMissions,
@@ -70,6 +72,9 @@ function Home() {
   const [selected, setSelected] = useState([]);
   const [eveningConditions, setEveningConditions] = useState([]);
   const [earnedPoint, setEarnedPoint] = useState(null);
+  const [isCreatingEvening, setIsCreatingEvening] = useState(false);
+  const [completingIds, setCompletingIds] = useState([]);
+  const [isMorningBlocked, setIsMorningBlocked] = useState(false);
 
   const setHideFooter = useLayoutStore((state) => state.setHideFooter);
 
@@ -152,6 +157,10 @@ function Home() {
     (state) => state.markEveningMissionsSet,
   );
 
+  const setEveningMission = useMissionStore(
+    (state) => state.setEveningMission,
+  );
+
   const isEveningMissionSet =
     eveningSetDate === formatApiDate();
 
@@ -206,38 +215,107 @@ function Home() {
     fetchMissionOptions();
   }, []);
 
-  const handleMissionCheckBtn = (
+  // 오늘 채워야 할 미션 목록
+  //
+  // 아침 미션은 정오가 지나 만들어지면 서버가 실패 처리해서 완료가 안 됨.
+  // 그대로 두면 보너스 조건을 영영 못 채우므로 완료할 수 있는 것만 셈.
+  const getBonusTargets = (
+    nextMorning,
+    nextEvening,
+    morningBlocked,
+  ) =>
+    morningBlocked
+      ? nextEvening
+      : [...nextMorning, ...nextEvening];
+
+  // 오늘 받은 미션을 다 채웠으면 보너스 지급
+  const awardBonusIfAllDone = (targets) => {
+    if (targets.length === 0) return;
+
+    if (isBonusAwardedToday) return;
+
+    const isAllDone = targets.every(
+      (mission) => mission.completed,
+    );
+
+    if (!isAllDone) return;
+
+    addPoint(FULL_COMPLETION_BONUS);
+
+    markBonusAwarded(formatApiDate());
+
+    setEarnedPoint(
+      targets.length + FULL_COMPLETION_BONUS,
+    );
+  };
+
+  const handleMissionCheckBtn = async (
     id,
     missions,
     tab,
   ) => {
-    const next = missions.map((mission) =>
-      mission.id === id
-        ? {
-            ...mission,
-            completed: !mission.completed,
-          }
-        : mission,
-    );
-
-    setMissionsByType(tab, next);
-
-    const checked = next.find(
+    const target = missions.find(
       (mission) => mission.id === id,
     );
 
+    // 완료 취소 API 가 없어서 한 번 완료하면 되돌릴 수 없음
+    if (!target || target.completed) return;
+
+    if (completingIds.includes(id)) return;
+
+    const next = missions.map((mission) =>
+      mission.id === id
+        ? { ...mission, completed: true }
+        : mission,
+    );
+
+    // 먼저 화면에 반영하고 실패하면 되돌림
+    setMissionsByType(tab, next);
+
+    setCompletingIds((prev) => [...prev, id]);
+
+    try {
+      await completeMissionStep(id);
+    } catch (error) {
+      console.error(
+        "미션 완료 실패:",
+        error.response?.data ?? error,
+      );
+
+      setMissionsByType(tab, missions);
+
+      // 아침이 막힌 걸 여기서 처음 알게 됨.
+      // 저녁을 먼저 다 채워둔 경우가 있어 보너스를 다시 판정.
+      if (tab === "morning") {
+        setIsMorningBlocked(true);
+
+        awardBonusIfAllDone(
+          getBonusTargets(
+            morningMissions,
+            eveningMissions,
+            true,
+          ),
+        );
+      }
+
+      return;
+    } finally {
+      setCompletingIds((prev) =>
+        prev.filter((value) => value !== id),
+      );
+    }
+
+    // 포인트는 서버에 저장된 뒤에 적립
     const missionKey = `${tab}-${id}`;
-    const today = formatApiDate();
 
     if (
-      checked.completed &&
       !awardedKeysToday.includes(missionKey)
     ) {
-      addPoint(checked.point);
+      addPoint(target.point);
 
       addAwardedMissionKey(
         missionKey,
-        today,
+        formatApiDate(),
       );
     }
 
@@ -251,36 +329,44 @@ function Home() {
         ? next
         : eveningMissions;
 
-    const isAllDone = [
-      ...nextMorning,
-      ...nextEvening,
-    ].every((mission) => mission.completed);
-
-    if (
-      isAllDone &&
-      !isBonusAwardedToday
-    ) {
-      addPoint(FULL_COMPLETION_BONUS);
-
-      markBonusAwarded(today);
-
-      const dailyTotal =
-        nextMorning.length +
-        nextEvening.length +
-        FULL_COMPLETION_BONUS;
-
-      setEarnedPoint(dailyTotal);
-    }
+    awardBonusIfAllDone(
+      getBonusTargets(
+        nextMorning,
+        nextEvening,
+        isMorningBlocked,
+      ),
+    );
   };
 
   const closeCelebration = useCallback(() => {
     setEarnedPoint(null);
   }, []);
 
-  const handleSetMissions = () => {
-    markEveningMissionsSet(
-      formatApiDate(),
-    );
+  const handleSetMissions = async () => {
+    // 생성에 몇 초 걸려서 그동안 다시 눌리지 않게 막음
+    if (isCreatingEvening) return;
+
+    if (selected.length === 0) return;
+
+    setIsCreatingEvening(true);
+
+    try {
+      const mission =
+        await createEveningMission(selected);
+
+      setEveningMission(mission);
+
+      markEveningMissionsSet(
+        formatApiDate(),
+      );
+    } catch (error) {
+      console.error(
+        "저녁 미션 생성 실패:",
+        error.response?.data ?? error,
+      );
+    } finally {
+      setIsCreatingEvening(false);
+    }
   };
 
   const handleConfirmMissions = () => {
@@ -391,7 +477,11 @@ function Home() {
           />
 
           <BigBtn
-            text="맞춤 미션 받기"
+            text={
+              isCreatingEvening
+                ? "미션 받는 중..."
+                : "맞춤 미션 받기"
+            }
             onClick={handleSetMissions}
           />
         </>
