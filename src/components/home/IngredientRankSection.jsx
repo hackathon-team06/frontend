@@ -4,10 +4,15 @@ import MissionEditBtn from "./MissionEditBtn";
 import RankItem from "./RankItem";
 import { rankData } from "../../constants/home/rankData";
 import { getRandomProducts } from "../../api/shop";
+import { formatCurrentDateTime } from "../../utils/getDate";
 
 export default function IngredientRankSection() {
-  const { title, highlight, date } = rankData;
+  const { title, highlight } = rankData;
+
   const [products, setProducts] = useState([]);
+  const [currentDateTime, setCurrentDateTime] = useState(
+    formatCurrentDateTime(),
+  );
 
   useEffect(() => {
     const fetchRandomProducts = async () => {
@@ -20,6 +25,14 @@ export default function IngredientRankSection() {
     };
 
     fetchRandomProducts();
+  }, []);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentDateTime(formatCurrentDateTime());
+    }, 60000);
+
+    return () => clearInterval(timer);
   }, []);
 
   return (
@@ -35,7 +48,9 @@ export default function IngredientRankSection() {
         <MissionEditBtn />
       </div>
 
-      <div className="text-xs font-medium pt-1.5">{date}</div>
+      <div className="text-xs font-medium pt-1.5">
+        {currentDateTime}
+      </div>
 
       <div className="flex flex-col gap-4 pl-2 mt-5.25">
         {products.map((product, index) => (
