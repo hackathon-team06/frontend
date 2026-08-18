@@ -5,6 +5,7 @@ import useOnboardingStore from "../../store/useOnboardingStore";
 import usePointStore from "../../store/usePointStore";
 import useUserStore from "../../store/useUserStore";
 import { toProfile, getStamps } from "../../api/mypage";
+import { getMyPoint } from "../../api/point";
 
 import ProfileCard from "../../components/mypage/ProfileCard";
 import PointCard from "../../components/mypage/PointCard";
@@ -23,16 +24,36 @@ export default function MyPage() {
   const purpose = useOnboardingStore((state) => state.purpose);
 
   const point = usePointStore((state) => state.point);
+  const setPoint = usePointStore((state) => state.setPoint);
 
-  // 온보딩을 거치지 않고 바로 들어온 경우(새로고침 등)에도 채웁니다.
+  // 온보딩을 거치지 않고 바로 들어온 경우에도 사용자 정보를 조회합니다.
   useEffect(() => {
     if (user) return;
 
-    // 실패해도 아래 fallback 값으로 화면을 그리므로 그냥 넘깁니다.
     fetchUser().catch(() => {});
   }, [user, fetchUser]);
 
-  const profile = toProfile(user, { nickname, age, skinType, purpose });
+  // 현재 로그인한 사용자의 보유 포인트 조회
+  useEffect(() => {
+    const fetchPoint = async () => {
+      try {
+        const data = await getMyPoint();
+        setPoint(data.point);
+      } catch (error) {
+        console.error("포인트 조회 실패:", error);
+      }
+    };
+
+    fetchPoint();
+  }, [setPoint]);
+
+  const profile = toProfile(user, {
+    nickname,
+    age,
+    skinType,
+    purpose,
+  });
+
   const stamps = getStamps();
 
   return (
