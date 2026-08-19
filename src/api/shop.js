@@ -35,18 +35,6 @@ export const getLikedProducts = async (category) => {
   return response.data;
 };
 
-// 포인트 적용 예상 가격 조회
-export const getPointPrice = async (productId, usePoints) => {
-  const response = await api.get(
-    `/api/shopping/products/${productId}/point-price`,
-    {
-      params: { usePoints },
-    },
-  );
-
-  return response.data;
-};
-
 // 랜덤 추천 상품 5개 조회
 export const getRandomProducts = async () => {
   const response = await api.get("/api/shopping/products/random");

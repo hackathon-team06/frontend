@@ -1,5 +1,6 @@
 import { useState } from "react";
 import useOnboardingStore from "../../store/useOnboardingStore";
+import usePointStore from "../../store/usePointStore";
 import useUserStore from "../../store/useUserStore";
 import { createDiagnosis } from "../../api/diagnosis";
 import { toDiagnosisRequest, findMissingStep } from "../../utils/user";
@@ -22,6 +23,7 @@ export default function Onboarding() {
   const [errorMessage, setErrorMessage] = useState("");
 
   const fetchUser = useUserStore((state) => state.fetchUser);
+  const fetchPoint = usePointStore((state) => state.fetchPoint);
 
   // 다음 페이지로 이동
   const nextPage = () => {
@@ -73,6 +75,9 @@ export default function Onboarding() {
     } catch {
       // 무시합니다.
     }
+
+    // 진단 보상 포인트 반영
+    fetchPoint();
 
     setIsSubmitting(false);
     setPage(8);
