@@ -13,15 +13,6 @@ export const getMorningRoutineOptions = async () => {
   return response.data;
 };
 
-// 아침 생활 루틴 설문 저장
-export const saveMorningRoutineSurvey = async (items) => {
-  const response = await api.post("/api/missions/morning-routine/survey", {
-    items,
-  });
-
-  return response.data;
-};
-
 // 아침 고정 미션 AI 추천
 export const getMorningRoutineRecommendations = async (categories = []) => {
   const response = await api.post(
