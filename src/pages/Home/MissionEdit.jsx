@@ -9,7 +9,6 @@ import {
   deleteMorningRoutineItem,
   getMorningRoutine,
 } from "../../api/mission";
-import { formatApiDate } from "../../utils/getDate";
 
 import backButton from "../../assets/images/back_button.svg";
 
@@ -69,12 +68,6 @@ export default function MissionEdit() {
     (state) => state.eveningMissions,
   );
 
-  const awardedDate = useMissionStore((state) => state.awardedDate);
-
-  const awardedMissionKeys = useMissionStore(
-    (state) => state.awardedMissionKeys,
-  );
-
   const setPendingMissionSelection = useMissionStore(
     (state) => state.setPendingMissionSelection,
   );
@@ -99,9 +92,9 @@ export default function MissionEdit() {
   const currentMissions =
     activeTab === "morning" ? morningMissions : eveningMissions;
 
-  const isTabLocked =
-    awardedDate === formatApiDate() &&
-    awardedMissionKeys.some((key) => key.startsWith(`${activeTab}-`));
+  const isTabLocked = currentMissions.some(
+    (mission) => mission.completed,
+  );
 
   const morningRemovedCount = morningMissions.filter(
     (mission) => mission.removed,

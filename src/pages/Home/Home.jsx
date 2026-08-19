@@ -44,8 +44,6 @@ import {
   toCategoryByContent,
 } from "../../utils/missionIcon";
 
-const FULL_COMPLETION_BONUS = 2;
-
 function Home() {
   const [
     searchParams,
@@ -137,11 +135,6 @@ function Home() {
     setCompletingIds,
   ] = useState([]);
 
-  const [
-    isMorningBlocked,
-    setIsMorningBlocked,
-  ] = useState(false);
-
   const setHideFooter =
     useLayoutStore(
       (state) =>
@@ -151,6 +144,11 @@ function Home() {
   const fetchPoint =
     usePointStore(
       (state) => state.fetchPoint,
+    );
+
+  const setPoint =
+    usePointStore(
+      (state) => state.setPoint,
     );
 
   const morningMissions =
@@ -181,36 +179,6 @@ function Home() {
     useMissionStore(
       (state) =>
         state.setMissionsByType,
-    );
-
-  const awardedDate =
-    useMissionStore(
-      (state) =>
-        state.awardedDate,
-    );
-
-  const awardedMissionKeys =
-    useMissionStore(
-      (state) =>
-        state.awardedMissionKeys,
-    );
-
-  const bonusAwarded =
-    useMissionStore(
-      (state) =>
-        state.bonusAwarded,
-    );
-
-  const addAwardedMissionKey =
-    useMissionStore(
-      (state) =>
-        state.addAwardedMissionKey,
-    );
-
-  const markBonusAwarded =
-    useMissionStore(
-      (state) =>
-        state.markBonusAwarded,
     );
 
   const showMissionSelection =
@@ -269,19 +237,6 @@ function Home() {
       (state) =>
         state.setEveningMission,
     );
-
-  const isAwardedToday =
-    awardedDate ===
-    formatApiDate();
-
-  const awardedKeysToday =
-    isAwardedToday
-      ? awardedMissionKeys
-      : [];
-
-  const isBonusAwardedToday =
-    isAwardedToday &&
-    bonusAwarded;
 
   // 오늘 서버에 저녁 미션이 있거나 오늘 직접 생성한 기록이 있으면 표시
   const isEveningMissionSet =
@@ -392,51 +347,6 @@ function Home() {
     fetchMissionOptions();
   }, []);
 
-  const getBonusTargets = (
-    nextMorning,
-    nextEvening,
-    morningBlocked,
-  ) =>
-    morningBlocked
-      ? nextEvening
-      : [
-          ...nextMorning,
-          ...nextEvening,
-        ];
-
-  const awardBonusIfAllDone = (
-    targets,
-  ) => {
-    if (
-      targets.length === 0
-    ) {
-      return;
-    }
-
-    if (
-      isBonusAwardedToday
-    ) {
-      return;
-    }
-
-    const isAllDone =
-      targets.every(
-        (mission) =>
-          mission.completed,
-      );
-
-    if (!isAllDone) return;
-
-    markBonusAwarded(
-      formatApiDate(),
-    );
-
-    setEarnedPoint(
-      targets.length +
-        FULL_COMPLETION_BONUS,
-    );
-  };
-
   const handleMissionCheckBtn =
     async (
       id,
@@ -488,10 +398,13 @@ function Home() {
         ],
       );
 
+      let result;
+
       try {
-        await completeMissionStep(
-          id,
-        );
+        result =
+          await completeMissionStep(
+            id,
+          );
       } catch (error) {
         console.error(
           "미션 완료 실패:",
@@ -505,22 +418,6 @@ function Home() {
           missions,
         );
 
-        if (
-          tab === "morning"
-        ) {
-          setIsMorningBlocked(
-            true,
-          );
-
-          awardBonusIfAllDone(
-            getBonusTargets(
-              morningMissions,
-              eveningMissions,
-              true,
-            ),
-          );
-        }
-
         return;
       } finally {
         setCompletingIds(
@@ -532,41 +429,25 @@ function Home() {
         );
       }
 
-      const missionKey =
-        `${tab}-${id}`;
-
-      // 축하 화면 중복 표시 방지용 기록
       if (
-        !awardedKeysToday.includes(
-          missionKey,
-        )
+        typeof result?.totalPoint ===
+        "number"
       ) {
-        addAwardedMissionKey(
-          missionKey,
-          formatApiDate(),
+        setPoint(
+          result.totalPoint,
         );
+      } else {
+        fetchPoint();
       }
 
-      const nextMorning =
-        tab === "morning"
-          ? next
-          : morningMissions;
-
-      const nextEvening =
-        tab === "evening"
-          ? next
-          : eveningMissions;
-
-      awardBonusIfAllDone(
-        getBonusTargets(
-          nextMorning,
-          nextEvening,
-          isMorningBlocked,
-        ),
-      );
-
-      // 서버 적립분 반영
-      fetchPoint();
+      if (
+        result?.dailyMissionsCompleted &&
+        result.awardedPoint > 0
+      ) {
+        setEarnedPoint(
+          result.awardedPoint,
+        );
+      }
     };
 
   const closeCelebration =
