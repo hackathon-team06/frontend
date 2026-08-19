@@ -444,8 +444,21 @@ function Home() {
         result?.dailyMissionsCompleted &&
         result.awardedPoint > 0
       ) {
+        const nextMorning =
+          tab === "morning"
+            ? next
+            : morningMissions;
+
+        const nextEvening =
+          tab === "evening"
+            ? next
+            : eveningMissions;
+
         setEarnedPoint(
-          result.awardedPoint,
+          nextMorning.length +
+            nextEvening.length +
+            (result.dailyBonusPoint ??
+              0),
         );
       }
     };
