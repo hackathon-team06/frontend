@@ -1,7 +1,6 @@
 import profileDefault from "../../assets/images/profile_default.png";
 import pencil from "../../assets/icons/pencil.svg";
 
-/** 마이페이지 프로필 카드. */
 export default function ProfileCard({ profile, onEditNickname }) {
   const { nickname, age, skinTypeLabel, goal, progressDay, profileImageUrl } =
     profile;

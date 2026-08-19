@@ -150,8 +150,6 @@ const useMissionStore = create(
             convertTodayMission(mission),
         }),
 
-      // 날짜가 변경됐는지 확인
-      // 다음날이면 전날 미션 상태 초기화
       syncMissionDate: (today) =>
         set((state) => {
           if (

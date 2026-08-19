@@ -10,8 +10,6 @@ export default function RootLayout() {
   const { pathname } = useLocation();
   const mainRef = useRef(null);
 
-  // 화면을 옮기면 항상 맨 위에서 시작합니다.
-  // (react-router 는 기본적으로 이전 화면의 스크롤 위치를 유지합니다)
   useEffect(() => {
     mainRef.current?.scrollTo(0, 0);
   }, [pathname]);

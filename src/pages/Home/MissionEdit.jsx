@@ -39,12 +39,6 @@ export default function MissionEdit() {
   const [showCategory, setShowCategory] = useState(Boolean(restoredMissions));
   const [selectedCategories, setSelectedCategories] = useState([]);
 
-  // 고정 아침 미션의 "문장 -> itemId".
-  //
-  // 화면의 미션은 오늘 미션 조회에서 와서 stepId 를 들고 있는데,
-  // 삭제 API 는 고정 아침 미션의 itemId 를 받습니다. 두 값이 서로 다릅니다.
-  // 다만 오늘 미션의 steps 는 고정 미션의 content 를 그대로 복사한 것이라
-  // 문장으로 itemId 를 되찾을 수 있습니다.
   const [itemIdByContent, setItemIdByContent] = useState({});
   const [isDeleting, setIsDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
@@ -105,11 +99,6 @@ export default function MissionEdit() {
   const currentMissions =
     activeTab === "morning" ? morningMissions : eveningMissions;
 
-  // 포인트를 받은 탭은 수정 불가.
-  // 미션 하나만 체크해도 그 순간 1점을 받으므로 그때부터 잠깁니다.
-  // (수정을 허용하면 미션을 갈아끼우며 점수를 반복해서 받을 수 있습니다)
-  //
-  // 지급 이력은 오늘 것일 때만 봅니다. 어제 이력으로 오늘까지 잠그면 안 됩니다.
   const isTabLocked =
     awardedDate === formatApiDate() &&
     awardedMissionKeys.some((key) => key.startsWith(`${activeTab}-`));
@@ -147,7 +136,6 @@ export default function MissionEdit() {
   };
 
   // 이미 목록에 있거나 방금 뽑은 미션은 후보에서 제외
-  // 인기 미션처럼 카테고리는 달라도 내용이 같은 미션이 있어 제목으로 비교
   const getMissionPool = (categoryKey, pickedMissions = []) => {
     const pool = recommendedMissionData[categoryKey] ?? [];
 
@@ -211,13 +199,6 @@ export default function MissionEdit() {
     ];
   };
 
-  /**
-   * 추천 미션을 고르러 넘어갑니다.
-   *
-   * 아침 탭에서는 이 시점에 지운 미션을 서버에서도 삭제합니다.
-   * 서버 문서가 안내하는 순서(삭제 -> 추천 -> 저장)를 그대로 따릅니다.
-   * 저녁 미션은 매일 새로 생성되는 것이라 삭제 API 가 없어 로컬에만 반영됩니다.
-   */
   const handleAddClick = async () => {
     if (isDeleting) return;
 
@@ -234,7 +215,6 @@ export default function MissionEdit() {
         for (const mission of removedMorning) {
           const itemId = itemIdByContent[mission.title];
 
-          // 직접 추가한 미션 등 고정 미션에서 못 찾은 것은 로컬에서만 지웁니다.
           if (itemId) {
             await deleteMorningRoutineItem(itemId);
           }
