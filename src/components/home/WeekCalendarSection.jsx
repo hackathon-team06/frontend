@@ -7,15 +7,11 @@ import useGoogleCalendarStore from "../../store/useGoogleCalendarStore";
 import { getWeeklyMissionStatus } from "../../api/mission";
 import { formatApiDate, getDate } from "../../utils/getDate";
 
-/**
- * 아직 응답을 못 받았거나 실패했을 때 보여줄 빈 한 주.
- *
- * 칸이 없으면 화면이 출렁이니 월요일부터 7칸을 미리 깔아둡니다.
- */
+// 응답 오기 전에 보여줄 빈 한 주
 const buildEmptyWeek = (today) => {
   const monday = new Date(today);
 
-  // getDay() 는 일요일이 0 이라, 월요일이 0 이 되도록 돌려서 뺍니다.
+  // getDay() 는 일요일이 0 이라 월요일 기준으로 맞춤
   monday.setDate(monday.getDate() - ((monday.getDay() + 6) % 7));
 
   return Array.from({ length: 7 }, (_, index) => {
@@ -31,7 +27,7 @@ export default function WeekCalenderSection() {
   const navigate = useNavigate();
   const isConnected = useGoogleCalendarStore((state) => state.isConnected);
 
-  // 화면이 떠 있는 동안 기준 날짜가 바뀌면 곤란해서 마운트 때 한 번만 잡습니다.
+  // 렌더마다 바뀌지 않게 한 번만 잡음
   const [today] = useState(() => new Date());
   const todayKey = formatApiDate(today);
 
@@ -47,8 +43,7 @@ export default function WeekCalenderSection() {
         }
       })
       .catch((error) => {
-        // 못 받아와도 빈 주를 그대로 두고 화면은 살려둡니다.
-        console.warn("주간 미션 현황을 불러오지 못했어요.", error);
+        console.error("주간 미션 현황 조회 실패:", error);
       });
 
     return () => {

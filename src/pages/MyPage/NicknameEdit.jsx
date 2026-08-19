@@ -3,11 +3,16 @@ import { useNavigate } from "react-router-dom";
 
 import useOnboardingStore from "../../store/useOnboardingStore";
 import useLayoutStore from "../../store/useLayoutStore";
+import useUserStore from "../../store/useUserStore";
+import { updateNickname } from "../../api/user";
 import NicknameConfirm from "../../components/mypage/NicknameConfirm";
 
 import arrowBack from "../../assets/icons/arrow_back.svg";
 
 const MAX_LENGTH = 12;
+
+/** 서버가 요구하는 최소 글자 수. 1글자로 보내면 400 이 납니다. */
+const MIN_LENGTH = 2;
 
 export default function NicknameEdit() {
   const navigate = useNavigate();
@@ -15,9 +20,13 @@ export default function NicknameEdit() {
   const setNickname = useOnboardingStore((state) => state.setNickname);
   const setHideFooter = useLayoutStore((state) => state.setHideFooter);
 
+  const setUser = useUserStore((state) => state.setUser);
+
   const [value, setValue] = useState("");
-  const [showEmptyError, setShowEmptyError] = useState(false);
+  const [inputError, setInputError] = useState("");
   const [isConfirming, setIsConfirming] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState("");
 
   // 디자인에 하단 탭바가 없는 화면입니다.
   useEffect(() => {
@@ -32,16 +41,39 @@ export default function NicknameEdit() {
     event.preventDefault();
 
     if (!trimmed) {
-      setShowEmptyError(true);
+      setInputError("닉네임을 입력해주세요");
+      return;
+    }
+
+    // 서버가 2자 미만을 거절합니다. 요청을 보내기 전에 걸러냅니다.
+    if (trimmed.length < MIN_LENGTH) {
+      setInputError(`닉네임은 ${MIN_LENGTH}글자 이상이어야 해요`);
       return;
     }
 
     setIsConfirming(true);
   };
 
-  const handleConfirm = () => {
-    setNickname(trimmed);
-    navigate("/mypage");
+  const handleConfirm = async () => {
+    if (isSaving) return;
+
+    setIsSaving(true);
+    setSaveError("");
+
+    try {
+      const user = await updateNickname(trimmed);
+
+      // 서버가 갱신된 내 정보를 통째로 돌려주므로 그대로 담습니다.
+      setUser(user);
+
+      // 마이페이지는 온보딩 스토어 값을 먼저 보므로 여기도 맞춰둡니다.
+      setNickname(trimmed);
+
+      navigate("/mypage");
+    } catch {
+      setSaveError("저장에 실패했어요. 잠시 후 다시 시도해주세요.");
+      setIsSaving(false);
+    }
   };
 
   return (
@@ -73,7 +105,7 @@ export default function NicknameEdit() {
           value={value}
           onChange={(event) => {
             setValue(event.target.value);
-            setShowEmptyError(false);
+            setInputError("");
           }}
           placeholder="이름 입력하기"
           maxLength={MAX_LENGTH}
@@ -81,9 +113,9 @@ export default function NicknameEdit() {
           className="h-[52px] w-full rounded-[12px] border border-ink-300 bg-ink-50 px-[14px] text-[16px] leading-[1.6] text-ink-900 outline-none placeholder:text-ink-300"
         />
 
-        {showEmptyError && (
+        {inputError && (
           <p className="mt-[8px] text-[12px] font-medium text-sale">
-            닉네임을 입력해주세요
+            {inputError}
           </p>
         )}
 
@@ -97,7 +129,12 @@ export default function NicknameEdit() {
         <NicknameConfirm
           nickname={trimmed}
           onConfirm={handleConfirm}
-          onCancel={() => setIsConfirming(false)}
+          onCancel={() => {
+            setIsConfirming(false);
+            setSaveError("");
+          }}
+          isSaving={isSaving}
+          errorMessage={saveError}
         />
       )}
     </div>

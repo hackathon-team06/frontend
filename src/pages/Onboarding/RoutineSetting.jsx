@@ -1,60 +1,116 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+
 import OnboardingButton from "../../components/common/OnboardingButton/OnboardingButton";
 
-const routineOptions = [
-  "🍵 기상 직후 미온수 한 잔 마시기",
-  "🧖🏻‍♀️ 귀가 후 10분 이내에 세안하기",
-  "🧘🏻‍♀️ 잠들기 전 스트레칭으로 혈액순환 돕기",
-  "💊 피부 영양제 챙겨 먹기",
-  "👜 립밤/선스틱 가방에 챙기기",
-  "🪟 아침 환기 5분 시키기",
-  "🧴 외출 전 수분 스킨 바르기",
-];
+import { getMorningRoutineOptions } from "../../api/mission";
+import { saveMorningRoutineWithinLimit } from "../../utils/mission";
 
 export default function RoutineSetting() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Result에서 선택해서 넘어온 추천 루틴
-  const selectedRecommendedRoutines = location.state?.selectedRoutines ?? [];
+  const selectedRecommendedRoutines =
+    location.state?.selectedRoutines ?? [];
 
   const [isOpen, setIsOpen] = useState(false);
-
-  // 이 페이지에서 추가한 루틴
+  const [routineOptions, setRoutineOptions] = useState([]);
+  const [maxSelections, setMaxSelections] = useState(3);
   const [customRoutines, setCustomRoutines] = useState([]);
 
-  // 현재 총 선택 개수
-  const totalCount = selectedRecommendedRoutines.length + customRoutines.length;
+  const totalCount =
+    selectedRecommendedRoutines.length +
+    customRoutines.length;
 
-  // 앞으로 선택할 수 있는 개수
-  const remainingCount = Math.max(0, 3 - totalCount);
+  const remainingCount = Math.max(
+    0,
+    maxSelections - totalCount,
+  );
 
-  // 루틴 추가
+  useEffect(() => {
+    const fetchRoutineOptions = async () => {
+      try {
+        const data = await getMorningRoutineOptions();
+
+        setRoutineOptions(data.items ?? []);
+        setMaxSelections(data.maxSelections ?? 3);
+      } catch (error) {
+        console.error(
+          "아침 루틴 선택지 조회 실패:",
+          error.response?.data ?? error,
+        );
+      }
+    };
+
+    fetchRoutineOptions();
+  }, []);
+
   const handleRoutineSelect = (routine) => {
     if (remainingCount === 0) return;
-    if (customRoutines.includes(routine)) return;
 
-    setCustomRoutines((prev) => [...prev, routine]);
+    const isAlreadyAdded = customRoutines.some(
+      (item) => item.code === routine.code,
+    );
+
+    if (isAlreadyAdded) return;
+
+    setCustomRoutines((prev) => [
+      ...prev,
+      routine,
+    ]);
+
     setIsOpen(false);
   };
 
-  // 직접 추가한 루틴 삭제
   const handleRoutineDelete = (routine) => {
-    setCustomRoutines((prev) => prev.filter((item) => item !== routine));
+    setCustomRoutines((prev) =>
+      prev.filter(
+        (item) => item.code !== routine.code,
+      ),
+    );
   };
 
-  // 다음
-  const handleNext = () => {
-    if (totalCount !== 3) return;
+  const handleNext = async () => {
+    if (totalCount !== maxSelections) return;
 
-    const finalRoutines = [...selectedRecommendedRoutines, ...customRoutines];
+    const aiItems =
+      selectedRecommendedRoutines.map(
+        (routine) => ({
+          content: routine.content,
+          category: routine.category,
+          source: "AI",
+        }),
+      );
 
-    navigate("/onboarding/complete", {
-      state: {
-        routines: finalRoutines,
-      },
-    });
+    const customItems = customRoutines.map(
+      (routine) => ({
+        content: routine.label,
+        category: null,
+        source: "CUSTOM",
+      }),
+    );
+
+    const items = [
+      ...aiItems,
+      ...customItems,
+    ];
+
+    try {
+      await saveMorningRoutineWithinLimit(items);
+
+      navigate("/onboarding/complete", {
+        state: {
+          routines: items.map(
+            (item) => item.content,
+          ),
+        },
+      });
+    } catch (error) {
+      console.error(
+        "아침 고정 미션 확정 실패:",
+        error.response?.data ?? error,
+      );
+    }
   };
 
   return (
@@ -63,12 +119,12 @@ export default function RoutineSetting() {
         <p className="text-cyan-900 text-3xl font-bold leading-[51.20px] tracking-wide">
           딱 맞는 루틴이 없나요?
         </p>
+
         <p className="text-cyan-900 text-base font-semibold leading-6 tracking-tight">
           내 생활에 맞게 직접 만들어보세요
         </p>
       </header>
 
-      {/* 루틴 추가 */}
       <section className="relative mt-[38px] mx-[20px]">
         <button
           type="button"
@@ -99,10 +155,9 @@ export default function RoutineSetting() {
         >
           {remainingCount > 0
             ? `루틴을 추가해보세요 (${remainingCount}개 선택 가능)`
-            : "루틴 3개 선택 완료"}
+            : `루틴 ${maxSelections}개 선택 완료`}
         </button>
 
-        {/* 루틴 옵션 */}
         {isOpen && remainingCount > 0 && (
           <div
             className="
@@ -120,13 +175,21 @@ export default function RoutineSetting() {
             "
           >
             {routineOptions.map((routine) => {
-              const isAdded = customRoutines.includes(routine);
+              const isAdded =
+                customRoutines.some(
+                  (item) =>
+                    item.code === routine.code,
+                );
 
               return (
                 <button
-                  key={routine}
+                  key={routine.code}
                   disabled={isAdded}
-                  onClick={() => handleRoutineSelect(routine)}
+                  onClick={() =>
+                    handleRoutineSelect(
+                      routine,
+                    )
+                  }
                   className={`
                     w-full
                     min-h-[52px]
@@ -146,7 +209,7 @@ export default function RoutineSetting() {
                     }
                   `}
                 >
-                  {routine}
+                  {routine.label}
                 </button>
               );
             })}
@@ -154,38 +217,39 @@ export default function RoutineSetting() {
         )}
       </section>
 
-      {/* 추가된 루틴 */}
       <section className="mt-[210px] mx-[26px]">
         <div className="mb-[12px] flex items-center justify-between">
-          <p className="text-cyan-900 text-xs font-semibold">추가된 루틴</p>
+          <p className="text-cyan-900 text-xs font-semibold">
+            추가된 루틴
+          </p>
         </div>
 
         <div className="flex flex-col">
-          {/* Result에서 선택한 루틴 */}
-          {selectedRecommendedRoutines.map((item) => (
-            <div
-              key={item}
-              className="
-                w-full
-                min-h-[60px]
-                px-[16px]
-                flex
-                items-center
-                border-b
-                border-[#F0F0F0]
-                text-[#65DBBE]
-                text-sm
-                font-medium
-              "
-            >
-              {item}
-            </div>
-          ))}
+          {selectedRecommendedRoutines.map(
+            (item, index) => (
+              <div
+                key={`${item.content}-${index}`}
+                className="
+                  w-full
+                  min-h-[60px]
+                  px-[16px]
+                  flex
+                  items-center
+                  border-b
+                  border-[#F0F0F0]
+                  text-[#65DBBE]
+                  text-sm
+                  font-medium
+                "
+              >
+                {item.content}
+              </div>
+            ),
+          )}
 
-          {/* 직접 추가한 루틴 */}
           {customRoutines.map((item) => (
             <div
-              key={item}
+              key={item.code}
               className="
                 w-full
                 h-[60px]
@@ -200,10 +264,12 @@ export default function RoutineSetting() {
                 font-medium
               "
             >
-              <span>{item}</span>
+              <span>{item.label}</span>
 
               <button
-                onClick={() => handleRoutineDelete(item)}
+                onClick={() =>
+                  handleRoutineDelete(item)
+                }
                 className="text-neutral-300 text-xs font-medium cursor-pointer"
               >
                 삭제
@@ -215,8 +281,14 @@ export default function RoutineSetting() {
 
       <div onClick={handleNext}>
         <OnboardingButton
-          title={totalCount === 3 ? "시작하기" : "다음"}
-          disabled={totalCount !== 3}
+          title={
+            totalCount === maxSelections
+              ? "시작하기"
+              : "다음"
+          }
+          disabled={
+            totalCount !== maxSelections
+          }
           className="absolute bottom-0"
         />
       </div>

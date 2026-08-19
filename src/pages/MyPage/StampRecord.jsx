@@ -1,50 +1,138 @@
-import { useState } from "react";
-import { useParams } from "react-router-dom";
+import { useEffect, useState } from "react";
 
-import { getStampCalendar, getStampStartMonth } from "../../api/mypage";
+import { getStampCalendar } from "../../api/stamp";
 import StampCalendar from "../../components/mypage/StampCalendar";
 import StampSummary from "../../components/mypage/StampSummary";
 
 import arrowBack from "../../assets/icons/arrow_back.svg";
 
+const STATUS_MAP = {
+  FULL_SUCCESS: "all",
+  PARTIAL_SUCCESS: "partial",
+  NOT_DONE: "none",
+};
+
+const normalizeCalendar = (data) => {
+  const firstWeekday = new Date(
+    data.year,
+    data.month - 1,
+    1,
+  ).getDay();
+
+  return {
+    year: data.year,
+    month: data.month,
+    firstWeekday,
+
+    days: data.days.map((day) => ({
+      day: Number(day.date.slice(-2)),
+      date: day.date,
+      status: STATUS_MAP[day.status] ?? "none",
+      point: day.point,
+    })),
+
+    totalStampCount: data.summary.totalStampCount,
+    dailyPoint: data.summary.dailyPoint,
+    completionPoint: data.summary.completionPoint,
+    totalEarnedPoint: data.summary.totalEarnedPoint,
+  };
+};
+
 export default function StampRecord() {
-  const { stampId } = useParams();
+  const today = new Date();
 
-  // 코스 시작 달을 기준으로 몇 달 이동했는지만 들고 있습니다.
-  const [monthOffset, setMonthOffset] = useState(0);
+  const [shownDate, setShownDate] = useState(
+    () =>
+      new Date(
+        today.getFullYear(),
+        today.getMonth(),
+        1,
+      ),
+  );
 
-  const start = getStampStartMonth(stampId);
+  const [calendar, setCalendar] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  if (!start) {
+  const year = shownDate.getFullYear();
+  const month = shownDate.getMonth() + 1;
+
+  useEffect(() => {
+    const fetchStampCalendar = async () => {
+      try {
+        setLoading(true);
+
+        const data = await getStampCalendar(
+          year,
+          month,
+        );
+
+        console.log(
+          "월별 스탬프 달력 조회:",
+          data,
+        );
+
+        setCalendar(normalizeCalendar(data));
+      } catch (error) {
+        console.error(
+          "월별 스탬프 달력 조회 실패:",
+          error,
+        );
+
+        setCalendar(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStampCalendar();
+  }, [year, month]);
+
+  const moveMonth = (offset) => {
+    setShownDate(
+      (prev) =>
+        new Date(
+          prev.getFullYear(),
+          prev.getMonth() + offset,
+          1,
+        ),
+    );
+  };
+
+  if (loading) {
     return (
       <div className="flex min-h-full items-center justify-center bg-white">
-        <p className="text-[14px] text-ink-500">스탬프 기록을 찾을 수 없어요</p>
+        <p className="text-[14px] text-ink-500">
+          스탬프 기록을 불러오는 중...
+        </p>
       </div>
     );
   }
 
-  const shown = new Date(start.year, start.month - 1 + monthOffset, 1);
-  const year = shown.getFullYear();
-  const month = shown.getMonth() + 1;
-
-  const calendar = getStampCalendar(stampId, year, month);
+  if (!calendar) {
+    return (
+      <div className="flex min-h-full items-center justify-center bg-white">
+        <p className="text-[14px] text-ink-500">
+          스탬프 기록을 불러올 수 없어요
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-full flex-col bg-white pb-[24px]">
-      {/* 월 이동 */}
       <div className="flex items-center justify-center gap-[62px] pt-[10px]">
         <MonthArrow
           direction="prev"
-          disabled={!calendar.canPrev}
-          onClick={() => setMonthOffset((prev) => prev - 1)}
+          onClick={() => moveMonth(-1)}
         />
 
-        <span className="text-[24px] font-semibold text-ink-900">{month}월</span>
+        <span className="text-[24px] font-semibold text-ink-900">
+          {month}월
+        </span>
 
         <MonthArrow
           direction="next"
-          disabled={!calendar.canNext}
-          onClick={() => setMonthOffset((prev) => prev + 1)}
+          onClick={() => moveMonth(1)}
         />
       </div>
 
@@ -53,7 +141,7 @@ export default function StampRecord() {
       </div>
 
       <p className="mt-[32px] pr-[19px] text-right text-[14px] font-medium text-ink-900">
-        총 {calendar.totalMissions}개 중 {calendar.doneMissions}개 완료
+        총 {calendar.totalStampCount}개 수집 완료
       </p>
 
       <div className="mt-[35px] px-[19px]">
@@ -63,20 +151,30 @@ export default function StampRecord() {
   );
 }
 
-function MonthArrow({ direction, disabled, onClick }) {
+function MonthArrow({ direction, onClick }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      disabled={disabled}
-      aria-label={direction === "prev" ? "이전 달" : "다음 달"}
-      className="flex h-[28px] w-[14px] cursor-pointer items-center justify-center disabled:cursor-default disabled:opacity-0"
+      aria-label={
+        direction === "prev"
+          ? "이전 달"
+          : "다음 달"
+      }
+      className="flex h-[28px] w-[14px] cursor-pointer items-center justify-center"
     >
       <img
         src={arrowBack}
         alt=""
-        className={direction === "next" ? "rotate-180" : ""}
-        style={{ width: 8.3, height: 15.1 }}
+        className={
+          direction === "next"
+            ? "rotate-180"
+            : ""
+        }
+        style={{
+          width: 8.3,
+          height: 15.1,
+        }}
       />
     </button>
   );

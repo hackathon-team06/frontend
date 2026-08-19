@@ -2,49 +2,12 @@ import useOnboardingStore from "../../store/useOnboardingStore";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import {
+  getMorningRoutineRecommendationsSafely,
+  saveMorningRoutineWithinLimit,
+} from "../../utils/mission";
+
 import loadingCharacter from "../../assets/images/loading_character.svg";
-
-const resultData = {
-  건성: {
-    routines: [
-      "💧 세안 후 3분 안에 보습제 바르기",
-      "🌙 미지근한 물로 부드럽게 세안하기",
-      "🌙 자기 전 보습 크림 한 번 더 바르기",
-    ],
-  },
-
-  지성: {
-    routines: [
-      "🧼 약산성 클렌저로 T존 위주 세안하기",
-      "💧 유분 없는 산뜻한 수분 젤 바르기",
-      "✨ 주 1~2회 꼼꼼하게 모공 딥클렌징하기",
-    ],
-  },
-
-  수부지: {
-    routines: [
-      "🧴 토너 레이어링으로 속수분 채우기",
-      "🫧 아침엔 약산성 클렌저로 유분만 정리하기",
-      "💧 유분 적은 수분 크림으로 수분막 형성하기",
-    ],
-  },
-
-  중성: {
-    routines: [
-      "🏆 우수한 밸런스 유지하는 수분 로션 바르기",
-      "✨ 사계절 매일 선크림 잊지 않고 바르기",
-      "💧 저녁 세안 후 항상 세럼으로 피부 영양 채우기",
-    ],
-  },
-
-  복합성: {
-    routines: [
-      "🍀 번들거리는 T존 위주로 부드럽게 세안하기",
-      "💧 건조한 U존에 수분 크림 한 번 더 덧바르기",
-      "⚖️ 유수분 밸런스 제품으로 잘 정리하기",
-    ],
-  },
-};
 
 const skinTypePath = {
   건성: "dry",
@@ -52,6 +15,83 @@ const skinTypePath = {
   수부지: "dehydrated",
   중성: "normal",
   복합성: "combination",
+};
+
+const getMissionCategory = (content) => {
+  if (!content) return "POPULAR";
+
+  if (
+    content.includes("수분") ||
+    content.includes("보습") ||
+    content.includes("물 한 컵") ||
+    content.includes("물 한 잔")
+  ) {
+    return "MOISTURE";
+  }
+
+  if (
+    content.includes("선크림") ||
+    content.includes("자외선") ||
+    content.includes("선스틱")
+  ) {
+    return "SUN_PROTECTION";
+  }
+
+  if (
+    content.includes("세안") ||
+    content.includes("클렌징") ||
+    content.includes("씻기")
+  ) {
+    return "CLEANSING";
+  }
+
+  if (
+    content.includes("식사") ||
+    content.includes("과일") ||
+    content.includes("채소") ||
+    content.includes("영양") ||
+    content.includes("음식")
+  ) {
+    return "DIET_NUTRITION";
+  }
+
+  if (
+    content.includes("진정") ||
+    content.includes("장벽") ||
+    content.includes("시카") ||
+    content.includes("판테놀")
+  ) {
+    return "SOOTHING_BARRIER";
+  }
+
+  if (
+    content.includes("수면") ||
+    content.includes("잠") ||
+    content.includes("휴식") ||
+    content.includes("취침")
+  ) {
+    return "SLEEP_REST";
+  }
+
+  if (
+    content.includes("위생") ||
+    content.includes("손 씻") ||
+    content.includes("양치") ||
+    content.includes("환기")
+  ) {
+    return "HYGIENE";
+  }
+
+  if (
+    content.includes("운동") ||
+    content.includes("스트레칭") ||
+    content.includes("혈액순환") ||
+    content.includes("걷기")
+  ) {
+    return "EXERCISE_STRETCHING";
+  }
+
+  return "POPULAR";
 };
 
 function ResultOption({ text, selected, onClick }) {
@@ -73,31 +113,55 @@ function ResultOption({ text, selected, onClick }) {
 
 export default function Result() {
   const skinType = useOnboardingStore((state) => state.skinType);
-
   const navigate = useNavigate();
 
   const [selectedRoutines, setSelectedRoutines] = useState([]);
+  const [recommendedRoutines, setRecommendedRoutines] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const result = resultData[skinType];
-
-  // 피부 타입에 맞게 URL 변경
   useEffect(() => {
     const path = skinTypePath[skinType];
 
     if (path) {
-      navigate(`/onboarding/${path}`, { replace: true });
+      navigate(`/onboarding/${path}`, {
+        replace: true,
+      });
     }
   }, [skinType, navigate]);
 
-  // 추천 루틴 선택/해제
+  useEffect(() => {
+    const fetchRecommendations = async () => {
+      try {
+        const data = await getMorningRoutineRecommendationsSafely([]);
+
+        const recommendations = (data.recommendations ?? []).map(
+          (content) => ({
+            content,
+            category: getMissionCategory(content),
+            source: "AI",
+          }),
+        );
+
+        setRecommendedRoutines(recommendations);
+      } catch (error) {
+        console.error(
+          "아침 고정 미션 추천 조회 실패:",
+          error.response?.data ?? error,
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchRecommendations();
+  }, []);
+
   const handleRoutineClick = (index) => {
     setSelectedRoutines((prev) => {
-      // 이미 선택되어 있으면 선택 해제
       if (prev.includes(index)) {
         return prev.filter((item) => item !== index);
       }
 
-      // 최대 3개
       if (prev.length >= 3) {
         return prev;
       }
@@ -106,33 +170,38 @@ export default function Result() {
     });
   };
 
-  // 루틴 설정하러 가기
-  const handleGoRoutineSetting = () => {
-    const selectedRoutineTexts = selectedRoutines.map(
-      (index) => result.routines[index],
-    );
+  const getSelectedRoutineItems = () =>
+    selectedRoutines.map((index) => recommendedRoutines[index]);
 
+  const handleGoRoutineSetting = () => {
     navigate("/onboarding/routine-setting", {
       state: {
-        selectedRoutines: selectedRoutineTexts,
+        selectedRoutines: getSelectedRoutineItems(),
       },
     });
   };
 
-  // 시작하기
-  const handleStart = () => {
-    // 하나도 선택하지 않았으면 실행 X
-    if (selectedRoutines.length === 0) return;
+  const handleStart = async () => {
+    if (selectedRoutines.length !== 3) return;
 
-    navigate("/onboarding/complete");
+    const items = getSelectedRoutineItems();
+
+    try {
+      await saveMorningRoutineWithinLimit(items);
+
+      navigate("/onboarding/complete");
+    } catch (error) {
+      console.error(
+        "아침 고정 미션 확정 실패:",
+        error.response?.data ?? error,
+      );
+    }
   };
 
   return (
     <div className="relative flex min-h-screen flex-col items-center overflow-hidden bg-white">
-      {/* 배경 */}
       <div className="absolute top-[50px] left-1/2 h-[760px] w-[560px] -translate-x-1/2 rounded-full bg-[#D9FFF6] blur-[55px] opacity-80" />
 
-      {/* 제목 */}
       <header className="relative z-10 mt-[150px] flex flex-col items-center text-center">
         <p className="text-cyan-900 text-[28px] font-bold leading-[51.2px] tracking-wide">
           발견 완료!
@@ -147,16 +216,21 @@ export default function Result() {
         </p>
       </header>
 
-      {/* 루틴 목록 */}
       <main className="relative z-10 mt-[34px] flex flex-col gap-[14px]">
-        {result?.routines.map((routine, index) => (
-          <ResultOption
-            key={index}
-            text={routine}
-            selected={selectedRoutines.includes(index)}
-            onClick={() => handleRoutineClick(index)}
-          />
-        ))}
+        {isLoading ? (
+          <p className="text-neutral-400 text-sm font-medium">
+            추천 루틴을 불러오는 중이에요
+          </p>
+        ) : (
+          recommendedRoutines.map((routine, index) => (
+            <ResultOption
+              key={`${routine.content}-${index}`}
+              text={routine.content}
+              selected={selectedRoutines.includes(index)}
+              onClick={() => handleRoutineClick(index)}
+            />
+          ))
+        )}
       </main>
 
       <footer className="relative z-10 mt-[30px] flex flex-col items-center gap-[5px] text-center">
@@ -165,14 +239,15 @@ export default function Result() {
           <br />
           직접 추가해볼 수도 있어요!
         </p>
+
         <button
           onClick={handleGoRoutineSetting}
           className="cursor-pointer text-slate-500 text-xs font-medium underline leading-5 tracking-tight"
         >
           루틴 설정하러 가기
         </button>
-        {/* 하나 이상 선택하면 시작하기 표시 */}
-        {selectedRoutines.length > 0 && (
+
+        {selectedRoutines.length === 3 && (
           <button
             onClick={handleStart}
             className="mt-[7px] cursor-pointer text-[#3B6D8D] text-xl font-bold leading-8 tracking-wide"
@@ -181,7 +256,11 @@ export default function Result() {
           </button>
         )}
       </footer>
-      <img src={loadingCharacter} />
+
+      <img
+        src={loadingCharacter}
+        alt="로딩 캐릭터"
+      />
     </div>
   );
 }

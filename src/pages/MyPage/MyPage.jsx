@@ -1,14 +1,44 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import useOnboardingStore from "../../store/useOnboardingStore";
 import usePointStore from "../../store/usePointStore";
 import useUserStore from "../../store/useUserStore";
-import { toProfile, getStamps } from "../../api/mypage";
+
+import { toProfile } from "../../api/mypage";
+import { getMyPoint } from "../../api/point";
+import { getStampBooks } from "../../api/stamp";
 
 import ProfileCard from "../../components/mypage/ProfileCard";
 import PointCard from "../../components/mypage/PointCard";
 import StampCard from "../../components/mypage/StampCard";
+
+const formatDateLabel = (dateString) => {
+  const [, month, day] = dateString.split("-");
+
+  return `${Number(month)}/${Number(day)}`;
+};
+
+const normalizeStampBook = (stampBook, index) => ({
+  id: index + 1,
+
+  dateLabel: formatDateLabel(stampBook.startDate),
+
+  courseLabel:
+    stampBook.status === "COMPLETED"
+      ? `${stampBook.periodDays}DAY`
+      : stampBook.displayText,
+
+  status:
+    stampBook.status === "COMPLETED"
+      ? "done"
+      : "inProgress",
+
+  startDate: stampBook.startDate,
+  endDate: stampBook.endDate,
+  periodDays: stampBook.periodDays,
+  progressDays: stampBook.progressDays,
+});
 
 export default function MyPage() {
   const navigate = useNavigate();
@@ -16,24 +46,103 @@ export default function MyPage() {
   const user = useUserStore((state) => state.user);
   const fetchUser = useUserStore((state) => state.fetchUser);
 
-  // 서버 조회가 실패했을 때 대신 쓸 값입니다.
-  const nickname = useOnboardingStore((state) => state.nickname);
-  const age = useOnboardingStore((state) => state.age);
-  const skinType = useOnboardingStore((state) => state.skinType);
-  const purpose = useOnboardingStore((state) => state.purpose);
+  const nickname = useOnboardingStore(
+    (state) => state.nickname,
+  );
 
-  const point = usePointStore((state) => state.point);
+  const age = useOnboardingStore(
+    (state) => state.age,
+  );
 
-  // 온보딩을 거치지 않고 바로 들어온 경우(새로고침 등)에도 채웁니다.
+  const skinType = useOnboardingStore(
+    (state) => state.skinType,
+  );
+
+  const purpose = useOnboardingStore(
+    (state) => state.purpose,
+  );
+
+  const point = usePointStore(
+    (state) => state.point,
+  );
+
+  const setPoint = usePointStore(
+    (state) => state.setPoint,
+  );
+
+  const [stampBooks, setStampBooks] = useState([]);
+
+  const [
+    completedStampBookCount,
+    setCompletedStampBookCount,
+  ] = useState(0);
+
   useEffect(() => {
     if (user) return;
 
-    // 실패해도 아래 fallback 값으로 화면을 그리므로 그냥 넘깁니다.
     fetchUser().catch(() => {});
   }, [user, fetchUser]);
 
-  const profile = toProfile(user, { nickname, age, skinType, purpose });
-  const stamps = getStamps();
+  useEffect(() => {
+    const fetchPoint = async () => {
+      try {
+        const data = await getMyPoint();
+
+        setPoint(data.point);
+      } catch (error) {
+        console.error(
+          "포인트 조회 실패:",
+          error,
+        );
+      }
+    };
+
+    fetchPoint();
+  }, [setPoint]);
+
+  useEffect(() => {
+    const fetchStampBooks = async () => {
+      try {
+        const data = await getStampBooks();
+
+        console.log(
+          "스탬프북 카드 조회:",
+          data,
+        );
+
+        setCompletedStampBookCount(
+          data.completedStampBookCount ?? 0,
+        );
+
+        setStampBooks(
+          (data.stampBooks ?? []).map(
+            (stampBook, index) =>
+              normalizeStampBook(
+                stampBook,
+                index,
+              ),
+          ),
+        );
+      } catch (error) {
+        console.error(
+          "스탬프북 카드 조회 실패:",
+          error,
+        );
+
+        setCompletedStampBookCount(0);
+        setStampBooks([]);
+      }
+    };
+
+    fetchStampBooks();
+  }, []);
+
+  const profile = toProfile(user, {
+    nickname,
+    age,
+    skinType,
+    purpose,
+  });
 
   return (
     <div className="flex min-h-full flex-col bg-[#eff7f7] pb-[24px]">
@@ -44,24 +153,35 @@ export default function MyPage() {
       <div className="mt-[65px] px-[19px]">
         <ProfileCard
           profile={profile}
-          onEditNickname={() => navigate("/mypage/nickname")}
+          onEditNickname={() =>
+            navigate("/mypage/nickname")
+          }
         />
       </div>
 
       <div className="mt-[14px] px-[19px]">
-        <PointCard point={point} onGoToProduct={() => navigate("/product")} />
+        <PointCard
+          point={point}
+          onGoToProduct={() =>
+            navigate("/product")
+          }
+        />
       </div>
 
       <h2 className="mt-[29px] px-[19px] text-[16px] font-semibold text-black">
-        스탬프 총 {stamps.length}개 수집 완료
+        스탬프 총 {completedStampBookCount}개 수집 완료
       </h2>
 
       <ul className="mt-[17px] flex gap-[22px] px-[19px]">
-        {stamps.map((stamp) => (
+        {stampBooks.map((stamp) => (
           <li key={stamp.id}>
             <StampCard
               stamp={stamp}
-              onClick={() => navigate(`/mypage/stamp/${stamp.id}`)}
+              onClick={() =>
+                navigate(
+                  `/mypage/stamp/${stamp.id}`,
+                )
+              }
             />
           </li>
         ))}

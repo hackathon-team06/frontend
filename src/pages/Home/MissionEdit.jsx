@@ -1,10 +1,15 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import MissionNavBar from "../../components/home/MissionNavBar";
 import MissionSection from "../../components/home/MissionSection";
 import MissionCategorySection from "../../components/home/MissionCategorySection";
 import { recommendedMissionData } from "../../constants/home/recommendedMissionData";
 import useMissionStore from "../../store/useMissionStore";
+import {
+  deleteMorningRoutineItem,
+  getMorningRoutine,
+} from "../../api/mission";
+import { formatApiDate } from "../../utils/getDate";
 
 import backButton from "../../assets/images/back_button.svg";
 
@@ -34,6 +39,34 @@ export default function MissionEdit() {
   const [showCategory, setShowCategory] = useState(Boolean(restoredMissions));
   const [selectedCategories, setSelectedCategories] = useState([]);
 
+  // 고정 아침 미션의 "문장 -> itemId".
+  //
+  // 화면의 미션은 오늘 미션 조회에서 와서 stepId 를 들고 있는데,
+  // 삭제 API 는 고정 아침 미션의 itemId 를 받습니다. 두 값이 서로 다릅니다.
+  // 다만 오늘 미션의 steps 는 고정 미션의 content 를 그대로 복사한 것이라
+  // 문장으로 itemId 를 되찾을 수 있습니다.
+  const [itemIdByContent, setItemIdByContent] = useState({});
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+
+  useEffect(() => {
+    const fetchMorningRoutine = async () => {
+      try {
+        const routine = await getMorningRoutine();
+
+        setItemIdByContent(
+          Object.fromEntries(
+            (routine?.items ?? []).map((item) => [item.content, item.itemId]),
+          ),
+        );
+      } catch (error) {
+        console.error("고정 아침 미션 조회 실패:", error);
+      }
+    };
+
+    fetchMorningRoutine();
+  }, []);
+
   const storedMorningMissions = useMissionStore(
     (state) => state.morningMissions,
   );
@@ -42,7 +75,11 @@ export default function MissionEdit() {
     (state) => state.eveningMissions,
   );
 
-  const awardedTabs = useMissionStore((state) => state.awardedTabs);
+  const awardedDate = useMissionStore((state) => state.awardedDate);
+
+  const awardedMissionKeys = useMissionStore(
+    (state) => state.awardedMissionKeys,
+  );
 
   const setPendingMissionSelection = useMissionStore(
     (state) => state.setPendingMissionSelection,
@@ -68,8 +105,14 @@ export default function MissionEdit() {
   const currentMissions =
     activeTab === "morning" ? morningMissions : eveningMissions;
 
-  // 포인트를 받은 탭은 수정 불가
-  const isTabLocked = awardedTabs.includes(activeTab);
+  // 포인트를 받은 탭은 수정 불가.
+  // 미션 하나만 체크해도 그 순간 1점을 받으므로 그때부터 잠깁니다.
+  // (수정을 허용하면 미션을 갈아끼우며 점수를 반복해서 받을 수 있습니다)
+  //
+  // 지급 이력은 오늘 것일 때만 봅니다. 어제 이력으로 오늘까지 잠그면 안 됩니다.
+  const isTabLocked =
+    awardedDate === formatApiDate() &&
+    awardedMissionKeys.some((key) => key.startsWith(`${activeTab}-`));
 
   const morningRemovedCount = morningMissions.filter(
     (mission) => mission.removed,
@@ -168,6 +211,47 @@ export default function MissionEdit() {
     ];
   };
 
+  /**
+   * 추천 미션을 고르러 넘어갑니다.
+   *
+   * 아침 탭에서는 이 시점에 지운 미션을 서버에서도 삭제합니다.
+   * 서버 문서가 안내하는 순서(삭제 -> 추천 -> 저장)를 그대로 따릅니다.
+   * 저녁 미션은 매일 새로 생성되는 것이라 삭제 API 가 없어 로컬에만 반영됩니다.
+   */
+  const handleAddClick = async () => {
+    if (isDeleting) return;
+
+    const removedMorning =
+      activeTab === "morning"
+        ? morningMissions.filter((mission) => mission.removed)
+        : [];
+
+    if (removedMorning.length > 0) {
+      setIsDeleting(true);
+      setDeleteError("");
+
+      try {
+        for (const mission of removedMorning) {
+          const itemId = itemIdByContent[mission.title];
+
+          // 직접 추가한 미션 등 고정 미션에서 못 찾은 것은 로컬에서만 지웁니다.
+          if (itemId) {
+            await deleteMorningRoutineItem(itemId);
+          }
+        }
+      } catch {
+        setDeleteError("미션을 지우지 못했어요. 잠시 후 다시 시도해주세요.");
+        setIsDeleting(false);
+        return;
+      }
+
+      setIsDeleting(false);
+    }
+
+    setShowCategory(true);
+    setSelectedCategories([]);
+  };
+
   const handleMissionProgress = () => {
     const newRecommendedMissions = getRecommendedMissions();
 
@@ -210,10 +294,7 @@ export default function MissionEdit() {
           isEdit={true}
           isLocked={isTabLocked}
           addCount={morningRemovedCount}
-          onAddClick={() => {
-            setShowCategory(true);
-            setSelectedCategories([]);
-          }}
+          onAddClick={handleAddClick}
         />
       ) : (
         <MissionSection
@@ -222,11 +303,14 @@ export default function MissionEdit() {
           isEdit={true}
           isLocked={isTabLocked}
           addCount={eveningRemovedCount}
-          onAddClick={() => {
-            setShowCategory(true);
-            setSelectedCategories([]);
-          }}
+          onAddClick={handleAddClick}
         />
+      )}
+
+      {deleteError && (
+        <p className="mt-3 text-center text-[13px] font-medium text-sale">
+          {deleteError}
+        </p>
       )}
 
       {showCategory && !isTabLocked && (

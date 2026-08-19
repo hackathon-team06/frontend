@@ -6,7 +6,7 @@ export const morningMissionData = [
     icon: "water",
     title: "기상 직후 미온수 1잔 마시기!",
     subtitle: "(250ml)",
-    point: 3,
+    point: 1,
     completed: false,
   },
   {
@@ -14,7 +14,7 @@ export const morningMissionData = [
     icon: "vitamin",
     title: "아침 식사 후 알약 챙겨먹기! ",
     subtitle: "비타민 A,아연",
-    point: 3,
+    point: 1,
     completed: false,
   },
   {
@@ -22,7 +22,7 @@ export const morningMissionData = [
     icon: "cream",
     title: "외출 전 수분 스킨&썬크림 바르기! ",
     subtitle: "",
-    point: 2,
+    point: 1,
     completed: false,
   },
 ];
@@ -33,7 +33,7 @@ export const eveningMissionData = [
     icon: "cooling",
     title: "세안 직후 쿨링 패드로 진정 팩하기!",
     subtitle: "(15분)",
-    point: 3,
+    point: 1,
     completed: false,
   },
   {
@@ -41,7 +41,7 @@ export const eveningMissionData = [
     icon: "lymph",
     title: "붓기 예방을 위해 림프 마사지하기!",
     subtitle: "(3분)",
-    point: 3,
+    point: 1,
     completed: false,
   },
   {
@@ -49,7 +49,7 @@ export const eveningMissionData = [
     icon: "cream2",
     title: "수분 크림 바르고 숙면 준비하기!",
     subtitle: "",
-    point: 2,
+    point: 1,
     completed: false,
   },
 ];
