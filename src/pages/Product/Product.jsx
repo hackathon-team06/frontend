@@ -6,7 +6,6 @@ import usePointStore from "../../store/usePointStore";
 import { SKIN_TYPES, CATEGORIES } from "../../mocks/products";
 import {
   getProducts,
-  getPointPrice,
   likeProduct,
   unlikeProduct,
 } from "../../api/shop";
@@ -20,31 +19,23 @@ export default function Product() {
 
   const mySkinType = useOnboardingStore((state) => state.skinType);
   const point = usePointStore((state) => state.point);
+  const fetchPoint = usePointStore((state) => state.fetchPoint);
 
   const [skinType, setSkinType] = useState(mySkinType || "지성");
   const [category, setCategory] = useState(CATEGORIES[0]);
   const [products, setProducts] = useState([]);
 
   useEffect(() => {
+    fetchPoint();
+  }, [fetchPoint]);
+
+  // point 변경 시 할인 금액 갱신
+  useEffect(() => {
     const fetchProducts = async () => {
       try {
         const data = await getProducts(skinType, category);
 
-        const productsWithPointPrice = await Promise.all(
-          data.map(async (product) => {
-            const pointPriceData = await getPointPrice(
-              product.productId,
-              point,
-            );
-
-            return {
-              ...product,
-              pointAppliedPrice: pointPriceData.pointAppliedPrice,
-            };
-          }),
-        );
-
-        setProducts(productsWithPointPrice);
+        setProducts(data);
       } catch (error) {
         console.log("상품 조회 실패: ", error);
         setProducts([]);
