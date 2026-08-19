@@ -32,19 +32,12 @@ export const getMorningRoutineRecommendationsSafely = async (
 
 // 남은 자리만큼만 고정 아침 미션 저장. 자리가 없으면 건너뜀
 export const saveMorningRoutineWithinLimit = async (items) => {
-  let savedItems = [];
-
   try {
-    const routine = await getMorningRoutine();
+    await saveMorningRoutine(items.slice(0, MAX_ROUTINE_ITEMS));
+    return await getMorningRoutine();
+  } catch (error) {
+    if (!isRoutineFullError(error)) throw error;
 
-    savedItems = routine.items ?? [];
-  } catch {
-    // 루틴이 아직 없으면 조회가 실패할 수 있음
+    return await getMorningRoutine();
   }
-
-  const room = MAX_ROUTINE_ITEMS - savedItems.length;
-
-  if (room <= 0) return null;
-
-  return saveMorningRoutine(items.slice(0, room));
 };
