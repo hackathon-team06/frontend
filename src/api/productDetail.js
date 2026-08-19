@@ -93,9 +93,6 @@ export function getProductDetail(productId) {
     // 적립 포인트. 디자인 예시(18,900원 → 308포인트) 비율을 따랐습니다.
     rewardPoint: Math.round(product.price * 0.0163),
 
-    // 평점·리뷰는 상품 id 로 정해지는 더미 값입니다.
-    rating: (4.5 + (((product.id * 3) % 5) / 10)).toFixed(1),
-    reviewCount: 1200 + ((product.id * 7919) % 48000),
 
     amountLabels,
     options,
