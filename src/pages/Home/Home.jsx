@@ -35,11 +35,6 @@ const FULL_COMPLETION_BONUS = 2;
 
 function Home() {
   const [searchParams, setSearchParams] = useSearchParams();
-
-  const connect = useGoogleCalendarStore((state) => state.connect);
-
-  const [searchParams, setSearchParams] = useSearchParams();
-
   const connect = useGoogleCalendarStore((state) => state.connect);
 
   const clearJustConnected = useGoogleCalendarStore(
