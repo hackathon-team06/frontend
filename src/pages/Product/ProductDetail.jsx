@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { getProductDetail } from "../../api/productDetail";
@@ -27,10 +27,7 @@ export default function ProductDetail() {
   const { productId } = useParams();
   const navigate = useNavigate();
 
-  const detail = useMemo(
-    () => getProductDetail(productId),
-    [productId],
-  );
+  const [detail, setDetail] = useState(null);
 
   const setHideFooter = useLayoutStore(
     (state) => state.setHideFooter,
@@ -50,9 +47,22 @@ export default function ProductDetail() {
   const [isMovingToPartner, setIsMovingToPartner] =
     useState(false);
 
-  const [liked, setLiked] = useState(
-    detail?.liked ?? false,
-  );
+  const [liked, setLiked] = useState(false);
+
+  useEffect(() => {
+    const fetchDetail = async () => {
+      try {
+        const data = await getProductDetail(productId);
+
+        setDetail(data);
+        setLiked(data.liked ?? false);
+      } catch (error) {
+        console.error("상품 상세 조회 실패:", error);
+      }
+    };
+
+    fetchDetail();
+  }, [productId]);
 
   /* 상세 페이지에서는 Footer 숨기기 */
   useEffect(() => {
@@ -148,14 +158,14 @@ export default function ProductDetail() {
           type="button"
           onClick={() => navigate(-1)}
           aria-label="뒤로 가기"
-          className="absolute left-[17px] top-[11px] z-10 flex h-[32px] w-[16px] cursor-pointer items-center justify-center"
+          className="absolute left-[17px] top-[11px] z-10 flex h-[40px] w-[30px] cursor-pointer items-center justify-center"
         >
           <img
             src={arrowBack}
             alt=""
             style={{
-              width: 9.5,
-              height: 17.3,
+              width: 23,
+              height: 28,
             }}
           />
         </button>

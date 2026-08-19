@@ -1,4 +1,4 @@
-import { PRODUCTS } from "../mocks/products";
+import api from "./axios";
 
 const OPTION_UNITS = {
   "스킨/토너": { amounts: [500, 250], unit: "mL", per: 100, perLabel: "100mL당" },
@@ -20,7 +20,11 @@ function basePriceFor(price, amount, baseAmount) {
 }
 
 function buildOptions(product) {
-  const { amounts, unit, per, perLabel } = OPTION_UNITS[product.category];
+  const units = OPTION_UNITS[product.category];
+
+  if (!units) return [];
+
+  const { amounts, unit, per, perLabel } = units;
 
   return amounts.flatMap((amount) => {
     const base = basePriceFor(product.price, amount, amounts[0]);
@@ -42,10 +46,11 @@ function buildOptions(product) {
   });
 }
 
-export function getProductDetail(productId) {
-  const product = PRODUCTS.find((item) => item.id === Number(productId));
+// 상품 상세 조회
+export async function getProductDetail(productId) {
+  const response = await api.get(`/api/shopping/products/${productId}`);
 
-  if (!product) return null;
+  const product = response.data;
 
   const options = buildOptions(product);
   const amountLabels = [...new Set(options.map((option) => option.amountLabel))];
@@ -53,21 +58,17 @@ export function getProductDetail(productId) {
   return {
     ...product,
 
-    tags: [`${product.skinTypes[0]}피부`, "20대 구매 1위"],
-
-    originalPrice:
-      product.discountRate > 0
-        ? roundTo100(product.price / (1 - product.discountRate / 100))
-        : null,
+    tags: [`${product.skinTypes?.[0] ?? ""}피부`, "20대 구매 1위"].filter(
+      (tag) => tag !== "피부",
+    ),
 
     freeShipping: true,
 
     rewardPoint: Math.round(product.price * 0.0163),
 
+    hasOptions: options.length > 0,
 
     amountLabels,
     options,
-
-    partnerUrl: null,
   };
 }

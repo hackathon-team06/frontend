@@ -265,13 +265,13 @@ function ProductCard({
           }}
           aria-pressed={liked}
           aria-label={liked ? "찜 해제" : "찜하기"}
-          className="flex size-[20px] cursor-pointer items-center justify-center"
+          className="flex size-[23px] cursor-pointer items-center justify-center"
         >
           {liked ? (
             <img
               src={heartFilled}
               alt=""
-              className="size-[20px]"
+              className="size-[23px]"
             />
           ) : (
             <img
