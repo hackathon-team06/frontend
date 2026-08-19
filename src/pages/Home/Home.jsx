@@ -283,8 +283,7 @@ function Home() {
     isAwardedToday &&
     bonusAwarded;
 
-  // 오늘 서버에 저녁 미션이 있거나
-  // 오늘 직접 생성한 기록이 있으면 표시
+  // 오늘 서버에 저녁 미션이 있거나 오늘 직접 생성한 기록이 있으면 표시
   const isEveningMissionSet =
     eveningSetDate ===
       formatApiDate() ||
@@ -294,8 +293,7 @@ function Home() {
     activeTab === "evening" &&
     !isEveningMissionSet;
 
-  // 날짜 확인
-  // 다음날이면 store의 전날 미션 데이터 초기화
+  // 날짜 확인 -> 다음날이면 store의 전날 미션 데이터 초기화
   useEffect(() => {
     syncMissionDate(
       formatApiDate(),

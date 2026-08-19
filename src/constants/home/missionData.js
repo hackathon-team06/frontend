@@ -1,5 +1,3 @@
-// 미션 mockData
-// point : 미션 하나를 완료했을 때 받는 포인트. 한 세트를 다 채우면 합계가 적립됩니다.
 export const morningMissionData = [
   {
     id: 1,
