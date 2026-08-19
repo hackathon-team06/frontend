@@ -18,7 +18,6 @@ import PartnerLoading from "../../components/product/PartnerLoading";
 import heartFilled from "../../assets/icons/heart_filled.png";
 import heartOutline from "../../assets/icons/heart_outline.svg";
 import arrowBack from "../../assets/icons/arrow_back.svg";
-import star from "../../assets/icons/star.png";
 
 const CART_BUTTON_LABEL = "찜한 제품";
 
@@ -240,33 +239,6 @@ export default function ProductDetail() {
 
           <Chevron />
         </div>
-
-        {/* 평점 / 리뷰 */}
-        <div className="mt-[11px] flex items-center">
-          <span className="flex items-center gap-[3px] text-[14px] font-medium leading-[20px] text-ink-900">
-            평점
-            <span className="size-[2px] rounded-[2px] bg-ink-900" />
-            리뷰
-          </span>
-
-          <img
-            src={star}
-            alt=""
-            className="ml-[23px] size-[14px]"
-          />
-
-          <span className="ml-[3px] text-[14px] font-medium leading-[20px] text-ink-900">
-            {detail.rating}
-          </span>
-
-          <span className="ml-[8px] h-[12px] w-px bg-ink-900" />
-
-          <span className="ml-[4px] text-[14px] font-medium leading-[20px] text-ink-900">
-            리뷰 {detail.reviewCount.toLocaleString()}
-          </span>
-
-          <Chevron />
-        </div>
       </div>
 
       {/* 옵션 */}
@@ -303,22 +275,11 @@ export default function ProductDetail() {
           }
           className="absolute left-[19px] top-[41px] flex size-[32px] cursor-pointer items-center justify-center"
         >
-          {liked ? (
-            <img
-              src={heartFilled}
-              alt=""
-              className="size-[28px]"
-            />
-          ) : (
-            <img
-              src={heartOutline}
-              alt=""
-              style={{
-                width: 28,
-                height: 26,
-              }}
-            />
-          )}
+          <img
+            src={liked ? heartFilled : heartOutline}
+            alt=""
+            className={liked ? "size-[34px]" : "size-[24px]"}
+          />
         </button>
 
         {/* 찜 목록 */}

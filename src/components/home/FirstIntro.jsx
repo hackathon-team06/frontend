@@ -87,12 +87,12 @@ export default function FirstIntro({ onClick }) {
           </div>
         </div>
       </div>
-      <div className="flex gap-5.5 justify-center mt-40">
+      <div className="flex gap-5.5 justify-center mt-56">
         <div className="size-2 rounded-xl bg-emerald-300" />
         <div className="size-2 rounded-xl bg-green-200" />
         <div className="size-2 rounded-xl bg-green-200" />
       </div>
-      <div className="pl-66.5 mt-17.25">
+      <div className="pl-66.5 mt-11.25">
         <button
           onClick={onClick}
           className="cursor-pointer text-cyan-900 text-xl font-semibold"
