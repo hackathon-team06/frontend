@@ -61,11 +61,7 @@ function Home() {
     }
 
     setSearchParams({}, { replace: true });
-  }, [
-    searchParams,
-    setSearchParams,
-    connect,
-  ]);
+  }, [searchParams, setSearchParams, connect]);
 
   useEffect(() => {
     clearJustConnected();
@@ -77,44 +73,21 @@ function Home() {
 
   const navigate = useNavigate();
 
-  const [activeTab, setActiveTab] =
-    useState("morning");
-
+  const [activeTab, setActiveTab] = useState("morning");
   const [selected, setSelected] = useState([]);
+  const [eveningConditions, setEveningConditions] = useState([]);
+  const [earnedPoint, setEarnedPoint] = useState(null);
+  const [isCreatingEvening, setIsCreatingEvening] = useState(false);
+  const [completingIds, setCompletingIds] = useState([]);
+  const [isMorningBlocked, setIsMorningBlocked] = useState(false);
 
-  const [
-    eveningConditions,
-    setEveningConditions,
-  ] = useState([]);
-
-  const [earnedPoint, setEarnedPoint] =
-    useState(null);
-
-  const [
-    isCreatingEvening,
-    setIsCreatingEvening,
-  ] = useState(false);
-
-  const [completingIds, setCompletingIds] =
-    useState([]);
-
-  const [
-    isMorningBlocked,
-    setIsMorningBlocked,
-  ] = useState(false);
-
-  const [
-    completedMissionIds,
-    setCompletedMissionIds,
-  ] = useState(() => {
+  const [completedMissionIds, setCompletedMissionIds] = useState(() => {
     try {
       const saved = localStorage.getItem(
         COMPLETED_MISSION_STORAGE_KEY,
       );
 
-      return saved
-        ? JSON.parse(saved)
-        : [];
+      return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
     }
@@ -166,62 +139,54 @@ function Home() {
     (state) => state.setMissionsByType,
   );
 
-  const addAwardedMissionKey =
-    useMissionStore(
-      (state) => state.addAwardedMissionKey,
-    );
+  const addAwardedMissionKey = useMissionStore(
+    (state) => state.addAwardedMissionKey,
+  );
 
   const markBonusAwarded = useMissionStore(
     (state) => state.markBonusAwarded,
   );
 
-  const showMissionSelection =
-    useMissionStore(
-      (state) => state.showMissionSelection,
-    );
+  const showMissionSelection = useMissionStore(
+    (state) => state.showMissionSelection,
+  );
 
-  const pendingMissionType =
-    useMissionStore(
-      (state) => state.pendingMissionType,
-    );
+  const pendingMissionType = useMissionStore(
+    (state) => state.pendingMissionType,
+  );
 
   const pendingMissions = useMissionStore(
     (state) => state.pendingMissions,
   );
 
-  const recommendedMissions =
-    useMissionStore(
-      (state) =>
-        state.pendingRecommendedMissions,
-    );
+  const recommendedMissions = useMissionStore(
+    (state) => state.pendingRecommendedMissions,
+  );
 
   const applyMissionEdit = useMissionStore(
     (state) => state.applyMissionEdit,
   );
 
-  const clearPendingMissionSelection =
-    useMissionStore(
-      (state) =>
-        state.clearPendingMissionSelection,
-    );
+  const clearPendingMissionSelection = useMissionStore(
+    (state) => state.clearPendingMissionSelection,
+  );
 
   const eveningSetDate = useMissionStore(
     (state) => state.eveningSetDate,
   );
 
-  const markEveningMissionsSet =
-    useMissionStore(
-      (state) =>
-        state.markEveningMissionsSet,
-    );
+  const markEveningMissionsSet = useMissionStore(
+    (state) => state.markEveningMissionsSet,
+  );
 
-  const setEveningMission =
-    useMissionStore(
-      (state) => state.setEveningMission,
-    );
+  const setEveningMission = useMissionStore(
+    (state) => state.setEveningMission,
+  );
 
+  // 서버에서 저녁 미션이 내려오면 생성된 것으로 판단
   const isEveningMissionSet =
-    eveningSetDate === formatApiDate();
+    eveningSetDate === formatApiDate() ||
+    eveningMissions.length > 0;
 
   const isSetUpMode =
     activeTab === "evening" &&
@@ -338,14 +303,9 @@ function Home() {
           categoryByContent,
         );
 
-        // setTodayMissions에서 서버 응답을
-        // 실제 화면용 mission 데이터로 변환한 뒤
-        // localStorage 완료 상태를 다시 적용
         const {
-          morningMissions:
-            storedMorningMissions,
-          eveningMissions:
-            storedEveningMissions,
+          morningMissions: storedMorningMissions,
+          eveningMissions: storedEveningMissions,
         } = useMissionStore.getState();
 
         const restoreCompletedMissions = (
@@ -390,22 +350,21 @@ function Home() {
 
   // 미션 공통 옵션 조회
   useEffect(() => {
-    const fetchMissionOptions =
-      async () => {
-        try {
-          const data =
-            await getMissionOptions();
+    const fetchMissionOptions = async () => {
+      try {
+        const data =
+          await getMissionOptions();
 
-          setEveningConditions(
-            data.eveningConditions ?? [],
-          );
-        } catch (error) {
-          console.error(
-            "미션 공통 옵션 조회 실패:",
-            error,
-          );
-        }
-      };
+        setEveningConditions(
+          data.eveningConditions ?? [],
+        );
+      } catch (error) {
+        console.error(
+          "미션 공통 옵션 조회 실패:",
+          error,
+        );
+      }
+    };
 
     fetchMissionOptions();
   }, []);
@@ -458,16 +417,11 @@ function Home() {
       (mission) => mission.id === id,
     );
 
-    if (
-      !target ||
-      target.completed
-    ) {
+    if (!target || target.completed) {
       return;
     }
 
-    if (
-      completingIds.includes(id)
-    ) {
+    if (completingIds.includes(id)) {
       return;
     }
 
@@ -481,7 +435,6 @@ function Home() {
           : mission,
     );
 
-    // 화면에 먼저 완료 반영
     setMissionsByType(
       tab,
       next,
@@ -501,7 +454,6 @@ function Home() {
           error,
       );
 
-      // 실패하면 기존 상태로 복구
       setMissionsByType(
         tab,
         missions,
@@ -528,7 +480,6 @@ function Home() {
       );
     }
 
-    // 서버 완료 성공 후 저장
     setCompletedMissionIds(
       (prev) =>
         prev.includes(id)
