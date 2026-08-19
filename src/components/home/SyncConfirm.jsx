@@ -13,12 +13,6 @@ export default function SyncConfirm() {
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
 
-  /**
-   * 구글 동의 화면으로 보냅니다.
-   *
-   * 여기서 연동 상태를 바꾸지 않습니다. 아직 연동된 게 아니라 시작만 한 것이고,
-   * 실제 연동 여부는 돌아올 때 주소의 calendar 파라미터로 알 수 있습니다.
-   */
   const handleSyncBtn = async () => {
     if (isLoading) return;
 
@@ -28,7 +22,6 @@ export default function SyncConfirm() {
     try {
       const { authorizationUrl } = await getConnectUrl();
 
-      // 앱 안에서의 이동이 아니라 구글로 아예 나가는 것이라 navigate 를 쓰지 않습니다.
       window.location.href = authorizationUrl;
     } catch {
       setHasError(true);
@@ -80,17 +73,19 @@ export default function SyncConfirm() {
         </div>
       </div>
       <div className="flex flex-col gap-2">
-        <div className="flex gap-5.5 justify-center">
+        <div className="flex gap-5.5 justify-center mt-9">
           <div className="size-2 rounded-xl bg-green-200" />
           <div className="size-2 rounded-xl bg-green-200" />
           <div className="size-2 rounded-xl bg-emerald-300" />
         </div>
-        <button
-          onClick={() => navigate("/home")}
-          className="underline text-xs cursor-pointer font-medium text-neutral-400"
-        >
-          나중에 연동할게요
-        </button>
+        <div className="mt-3 flex justify-center">
+          <button
+            onClick={() => navigate("/home")}
+            className="underline text-xs cursor-pointer font-medium text-neutral-400"
+          >
+            나중에 연동할게요
+          </button>
+        </div>
 
         {hasError && (
           <p className="text-center text-xs font-medium text-sale">

@@ -1,5 +1,13 @@
-import { useCallback, useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import {
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
+
+import {
+  useNavigate,
+  useSearchParams,
+} from "react-router-dom";
 
 import WeatherTipSection from "../../components/home/WeatherTipSection";
 import WeekCalenderSection from "../../components/home/WeekCalendarSection";
@@ -28,33 +36,47 @@ import {
   getTodayMissions,
 } from "../../api/mission";
 
-import { formatApiDate } from "../../utils/getDate";
-import { toCategoryByContent } from "../../utils/missionIcon";
+import {
+  formatApiDate,
+} from "../../utils/getDate";
 
-const FULL_COMPLETION_BONUS = 2;
+import {
+  toCategoryByContent,
+} from "../../utils/missionIcon";
 
 function Home() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const connect = useGoogleCalendarStore((state) => state.connect);
+  const [
+    searchParams,
+    setSearchParams,
+  ] = useSearchParams();
 
-  const clearJustConnected = useGoogleCalendarStore(
-    (state) => state.clearJustConnected,
-  );
+  const navigate = useNavigate();
 
-  // 구글 동의를 마치면 백엔드가 ?calendar=connected 를 붙여 여기로 돌려보냅니다.
-  // 외부에서 들어오는 전체 페이지 로드라 스토어는 초기 상태이고,
-  // 연동이 됐는지는 주소로만 알 수 있습니다. 그래서 첫 렌더에서 주소를 바로 읽습니다.
-  const [showOverlay, setShowOverlay] = useState(
+  const connect =
+    useGoogleCalendarStore(
+      (state) => state.connect,
+    );
+
+  const clearJustConnected =
+    useGoogleCalendarStore(
+      (state) =>
+        state.clearJustConnected,
+    );
+
+  const [
+    showOverlay,
+    setShowOverlay,
+  ] = useState(
     () =>
-      useGoogleCalendarStore.getState().justConnected ||
-      searchParams.get("calendar") === "connected",
-    () =>
-      useGoogleCalendarStore.getState().justConnected ||
-      searchParams.get("calendar") === "connected",
+      useGoogleCalendarStore.getState()
+        .justConnected ||
+      searchParams.get("calendar") ===
+        "connected",
   );
 
   useEffect(() => {
-    const result = searchParams.get("calendar");
+    const result =
+      searchParams.get("calendar");
 
     if (!result) return;
 
@@ -62,361 +84,476 @@ function Home() {
       connect();
     }
 
-    setSearchParams({}, { replace: true });
-  }, [searchParams, setSearchParams, connect]);
+    setSearchParams(
+      {},
+      {
+        replace: true,
+      },
+    );
+  }, [
+    searchParams,
+    setSearchParams,
+    connect,
+  ]);
 
   useEffect(() => {
     clearJustConnected();
   }, [clearJustConnected]);
 
-  const hideSyncOverlay = useCallback(() => {
-    setShowOverlay(false);
-  }, []);
+  const hideSyncOverlay =
+    useCallback(() => {
+      setShowOverlay(false);
+    }, []);
 
-  const navigate = useNavigate();
+  const [
+    activeTab,
+    setActiveTab,
+  ] = useState("morning");
 
-  const [activeTab, setActiveTab] = useState("morning");
-  const [selected, setSelected] = useState([]);
-  const [eveningConditions, setEveningConditions] = useState([]);
-  const [earnedPoint, setEarnedPoint] = useState(null);
-  const [isCreatingEvening, setIsCreatingEvening] = useState(false);
-  const [completingIds, setCompletingIds] = useState([]);
-  const [isMorningBlocked, setIsMorningBlocked] = useState(false);
+  const [
+    selected,
+    setSelected,
+  ] = useState([]);
 
-  const setHideFooter = useLayoutStore((state) => state.setHideFooter);
+  const [
+    eveningConditions,
+    setEveningConditions,
+  ] = useState([]);
 
-  const addPoint = usePointStore((state) => state.addPoint);
+  const [
+    earnedPoint,
+    setEarnedPoint,
+  ] = useState(null);
 
-  const morningMissions = useMissionStore(
-    (state) => state.morningMissions,
-  );
+  const [
+    isCreatingEvening,
+    setIsCreatingEvening,
+  ] = useState(false);
 
-  const eveningMissions = useMissionStore(
-    (state) => state.eveningMissions,
-  );
+  const [
+    completingIds,
+    setCompletingIds,
+  ] = useState([]);
 
-  const setTodayMissions = useMissionStore(
-    (state) => state.setTodayMissions,
-  );
+  const setHideFooter =
+    useLayoutStore(
+      (state) =>
+        state.setHideFooter,
+    );
 
-  const awardedDate = useMissionStore(
-    (state) => state.awardedDate,
-  );
+  const fetchPoint =
+    usePointStore(
+      (state) => state.fetchPoint,
+    );
 
-  const awardedMissionKeys = useMissionStore(
-    (state) => state.awardedMissionKeys,
-  );
+  const setPoint =
+    usePointStore(
+      (state) => state.setPoint,
+    );
 
-  const bonusAwarded = useMissionStore(
-    (state) => state.bonusAwarded,
-  );
+  const morningMissions =
+    useMissionStore(
+      (state) =>
+        state.morningMissions,
+    );
 
-  const isAwardedToday = awardedDate === formatApiDate();
+  const eveningMissions =
+    useMissionStore(
+      (state) =>
+        state.eveningMissions,
+    );
 
-  const awardedKeysToday = isAwardedToday
-    ? awardedMissionKeys
-    : [];
+  const setTodayMissions =
+    useMissionStore(
+      (state) =>
+        state.setTodayMissions,
+    );
 
-  const isBonusAwardedToday =
-    isAwardedToday && bonusAwarded;
+  const syncMissionDate =
+    useMissionStore(
+      (state) =>
+        state.syncMissionDate,
+    );
 
-  const setMissionsByType = useMissionStore(
-    (state) => state.setMissionsByType,
-  );
+  const setMissionsByType =
+    useMissionStore(
+      (state) =>
+        state.setMissionsByType,
+    );
 
-  const addAwardedMissionKey = useMissionStore(
-    (state) => state.addAwardedMissionKey,
-  );
+  const showMissionSelection =
+    useMissionStore(
+      (state) =>
+        state.showMissionSelection,
+    );
 
-  const markBonusAwarded = useMissionStore(
-    (state) => state.markBonusAwarded,
-  );
+  const pendingMissionType =
+    useMissionStore(
+      (state) =>
+        state.pendingMissionType,
+    );
 
-  const showMissionSelection = useMissionStore(
-    (state) => state.showMissionSelection,
-  );
+  const pendingMissions =
+    useMissionStore(
+      (state) =>
+        state.pendingMissions,
+    );
 
-  const pendingMissionType = useMissionStore(
-    (state) => state.pendingMissionType,
-  );
+  const recommendedMissions =
+    useMissionStore(
+      (state) =>
+        state
+          .pendingRecommendedMissions,
+    );
 
-  const pendingMissions = useMissionStore(
-    (state) => state.pendingMissions,
-  );
+  const applyMissionEdit =
+    useMissionStore(
+      (state) =>
+        state.applyMissionEdit,
+    );
 
-  const recommendedMissions = useMissionStore(
-    (state) => state.pendingRecommendedMissions,
-  );
+  const clearPendingMissionSelection =
+    useMissionStore(
+      (state) =>
+        state
+          .clearPendingMissionSelection,
+    );
 
-  const applyMissionEdit = useMissionStore(
-    (state) => state.applyMissionEdit,
-  );
+  const eveningSetDate =
+    useMissionStore(
+      (state) =>
+        state.eveningSetDate,
+    );
 
-  const clearPendingMissionSelection = useMissionStore(
-    (state) => state.clearPendingMissionSelection,
-  );
+  const markEveningMissionsSet =
+    useMissionStore(
+      (state) =>
+        state
+          .markEveningMissionsSet,
+    );
 
-  const eveningSetDate = useMissionStore(
-    (state) => state.eveningSetDate,
-  );
+  const setEveningMission =
+    useMissionStore(
+      (state) =>
+        state.setEveningMission,
+    );
 
-  const markEveningMissionsSet = useMissionStore(
-    (state) => state.markEveningMissionsSet,
-  );
-
-  const setEveningMission = useMissionStore(
-    (state) => state.setEveningMission,
-  );
-
+  // 오늘 서버에 저녁 미션이 있거나 오늘 직접 생성한 기록이 있으면 표시
   const isEveningMissionSet =
-    eveningSetDate === formatApiDate();
+    eveningSetDate ===
+      formatApiDate() ||
+    eveningMissions.length > 0;
 
   const isSetUpMode =
-    activeTab === "evening" && !isEveningMissionSet;
+    activeTab === "evening" &&
+    !isEveningMissionSet;
+
+  // 날짜 확인 -> 다음날이면 store의 전날 미션 데이터 초기화
+  useEffect(() => {
+    syncMissionDate(
+      formatApiDate(),
+    );
+  }, [syncMissionDate]);
 
   // 오늘 미션 조회
   useEffect(() => {
-    const fetchTodayMissions = async () => {
-      try {
-        const data = await getTodayMissions();
-
-        console.log("오늘 미션 조회:", data);
-
-        let { morningMission } = data;
-
-        // 오늘치가 없으면 생성
-        if (!morningMission) {
-          try {
-            morningMission = await createMorningMission();
-          } catch (error) {
-            console.error("오늘 아침 미션 생성 실패:", error);
-          }
-        }
-
-        // 아침 미션 아이콘은 고정 아침 미션의 category 로 정합니다.
-        // 조회에 실패해도 문장에서 짐작하므로 화면은 그대로 뜹니다.
-        let categoryByContent = {};
-
+    const fetchTodayMissions =
+      async () => {
         try {
-          categoryByContent = toCategoryByContent(await getMorningRoutine());
-        } catch (error) {
-          console.error("고정 아침 미션 조회 실패:", error);
-        }
+          const data =
+            await getTodayMissions();
 
-        setTodayMissions({ ...data, morningMission }, categoryByContent);
-      } catch (error) {
-        console.error("오늘 미션 조회 실패:", error);
-      }
-    };
+          console.log(
+            "오늘 미션 조회:",
+            data,
+          );
+
+          let {
+            morningMission,
+          } = data;
+
+          // 오늘 아침 미션이 없으면 생성
+          if (!morningMission) {
+            try {
+              morningMission =
+                await createMorningMission();
+            } catch (error) {
+              console.error(
+                "오늘 아침 미션 생성 실패:",
+                error,
+              );
+            }
+          }
+
+          // 아침 고정 루틴 category 조회
+          let categoryByContent =
+            {};
+
+          try {
+            categoryByContent =
+              toCategoryByContent(
+                await getMorningRoutine(),
+              );
+          } catch (error) {
+            console.error(
+              "고정 아침 미션 조회 실패:",
+              error,
+            );
+          }
+
+          setTodayMissions(
+            {
+              ...data,
+
+              morningMission,
+
+              eveningMission:
+                data.eveningMission,
+            },
+
+            categoryByContent,
+          );
+        } catch (error) {
+          console.error(
+            "오늘 미션 조회 실패:",
+            error,
+          );
+        }
+      };
 
     fetchTodayMissions();
   }, [setTodayMissions]);
 
-  // 미션 공통 옵션 조회
+  // 미션 옵션 조회
   useEffect(() => {
-    const fetchMissionOptions = async () => {
-      try {
-        const data = await getMissionOptions();
+    const fetchMissionOptions =
+      async () => {
+        try {
+          const data =
+            await getMissionOptions();
 
-        setEveningConditions(
-          data.eveningConditions ?? [],
-        );
-      } catch (error) {
-        console.error(
-          "미션 공통 옵션 조회 실패:",
-          error,
-        );
-      }
-    };
+          setEveningConditions(
+            data.eveningConditions ??
+              [],
+          );
+        } catch (error) {
+          console.error(
+            "미션 공통 옵션 조회 실패:",
+            error,
+          );
+        }
+      };
 
     fetchMissionOptions();
   }, []);
 
-  // 오늘 채워야 할 미션 목록
-  //
-  // 아침 미션은 정오가 지나 만들어지면 서버가 실패 처리해서 완료가 안 됨.
-  // 그대로 두면 보너스 조건을 영영 못 채우므로 완료할 수 있는 것만 셈.
-  const getBonusTargets = (
-    nextMorning,
-    nextEvening,
-    morningBlocked,
-  ) =>
-    morningBlocked
-      ? nextEvening
-      : [...nextMorning, ...nextEvening];
+  const handleMissionCheckBtn =
+    async (
+      id,
+      missions,
+      tab,
+    ) => {
+      const target =
+        missions.find(
+          (mission) =>
+            mission.id === id,
+        );
 
-  // 오늘 받은 미션을 다 채웠으면 보너스 지급
-  const awardBonusIfAllDone = (targets) => {
-    if (targets.length === 0) return;
+      if (
+        !target ||
+        target.completed
+      ) {
+        return;
+      }
 
-    if (isBonusAwardedToday) return;
+      if (
+        completingIds.includes(
+          id,
+        )
+      ) {
+        return;
+      }
 
-    const isAllDone = targets.every(
-      (mission) => mission.completed,
-    );
+      // 화면에 먼저 완료 반영
+      const next =
+        missions.map(
+          (mission) =>
+            mission.id === id
+              ? {
+                  ...mission,
+                  completed: true,
+                }
+              : mission,
+        );
 
-    if (!isAllDone) return;
-
-    addPoint(FULL_COMPLETION_BONUS);
-
-    markBonusAwarded(formatApiDate());
-
-    setEarnedPoint(
-      targets.length + FULL_COMPLETION_BONUS,
-    );
-  };
-
-  const handleMissionCheckBtn = async (
-    id,
-    missions,
-    tab,
-  ) => {
-    const target = missions.find(
-      (mission) => mission.id === id,
-    );
-
-    // 완료 취소 API 가 없어서 한 번 완료하면 되돌릴 수 없음
-    if (!target || target.completed) return;
-
-    if (completingIds.includes(id)) return;
-
-    const next = missions.map((mission) =>
-      mission.id === id
-        ? { ...mission, completed: true }
-        : mission,
-    );
-
-    // 먼저 화면에 반영하고 실패하면 되돌림
-    setMissionsByType(tab, next);
-
-    setCompletingIds((prev) => [...prev, id]);
-
-    try {
-      await completeMissionStep(id);
-    } catch (error) {
-      console.error(
-        "미션 완료 실패:",
-        error.response?.data ?? error,
+      setMissionsByType(
+        tab,
+        next,
       );
 
-      setMissionsByType(tab, missions);
+      setCompletingIds(
+        (prev) => [
+          ...prev,
+          id,
+        ],
+      );
 
-      // 아침이 막힌 걸 여기서 처음 알게 됨.
-      // 저녁을 먼저 다 채워둔 경우가 있어 보너스를 다시 판정.
-      if (tab === "morning") {
-        setIsMorningBlocked(true);
+      let result;
 
-        awardBonusIfAllDone(
-          getBonusTargets(
-            morningMissions,
-            eveningMissions,
-            true,
-          ),
+      try {
+        result =
+          await completeMissionStep(
+            id,
+          );
+      } catch (error) {
+        console.error(
+          "미션 완료 실패:",
+          error.response?.data ??
+            error,
+        );
+
+        // API 실패 시 완료 상태 되돌리기
+        setMissionsByType(
+          tab,
+          missions,
+        );
+
+        return;
+      } finally {
+        setCompletingIds(
+          (prev) =>
+            prev.filter(
+              (value) =>
+                value !== id,
+            ),
         );
       }
 
-      return;
-    } finally {
-      setCompletingIds((prev) =>
-        prev.filter((value) => value !== id),
+      if (
+        typeof result?.totalPoint ===
+        "number"
+      ) {
+        setPoint(
+          result.totalPoint,
+        );
+      } else {
+        fetchPoint();
+      }
+
+      if (
+        result?.dailyMissionsCompleted &&
+        result.awardedPoint > 0
+      ) {
+        const nextMorning =
+          tab === "morning"
+            ? next
+            : morningMissions;
+
+        const nextEvening =
+          tab === "evening"
+            ? next
+            : eveningMissions;
+
+        setEarnedPoint(
+          nextMorning.length +
+            nextEvening.length +
+            (result.dailyBonusPoint ??
+              0),
+        );
+      }
+    };
+
+  const closeCelebration =
+    useCallback(() => {
+      setEarnedPoint(null);
+    }, []);
+
+  // 저녁 맞춤 미션 생성
+  const handleSetMissions =
+    async () => {
+      if (
+        isCreatingEvening
+      ) {
+        return;
+      }
+
+      if (
+        selected.length === 0
+      ) {
+        return;
+      }
+
+      setIsCreatingEvening(
+        true,
       );
-    }
 
-    // 포인트는 서버에 저장된 뒤에 적립
-    const missionKey = `${tab}-${id}`;
+      try {
+        const mission =
+          await createEveningMission(
+            selected,
+          );
 
-    if (
-      !awardedKeysToday.includes(missionKey)
-    ) {
-      addPoint(target.point);
+        setEveningMission(
+          mission,
+        );
 
-      addAwardedMissionKey(
-        missionKey,
-        formatApiDate(),
+        markEveningMissionsSet(
+          formatApiDate(),
+        );
+      } catch (error) {
+        console.error(
+          "저녁 미션 생성 실패:",
+          error.response?.data ??
+            error,
+        );
+      } finally {
+        setIsCreatingEvening(
+          false,
+        );
+      }
+    };
+
+  const handleConfirmMissions =
+    () => {
+      applyMissionEdit(
+        pendingMissionType,
+        pendingMissions,
+        recommendedMissions,
       );
-    }
 
-    const nextMorning =
-      tab === "morning"
-        ? next
-        : morningMissions;
+      clearPendingMissionSelection();
+    };
 
-    const nextEvening =
-      tab === "evening"
-        ? next
-        : eveningMissions;
+  const handleReselectCategory =
+    () => {
+      const missionType =
+        pendingMissionType;
 
-    awardBonusIfAllDone(
-      getBonusTargets(
-        nextMorning,
-        nextEvening,
-        isMorningBlocked,
-      ),
-    );
-  };
+      const missions =
+        pendingMissions;
 
-  const closeCelebration = useCallback(() => {
-    setEarnedPoint(null);
-  }, []);
+      clearPendingMissionSelection();
 
-  const handleSetMissions = async () => {
-    // 생성에 몇 초 걸려서 그동안 다시 눌리지 않게 막음
-    if (isCreatingEvening) return;
-
-    if (selected.length === 0) return;
-
-    setIsCreatingEvening(true);
-
-    try {
-      const mission =
-        await createEveningMission(selected);
-
-      setEveningMission(mission);
-
-      markEveningMissionsSet(
-        formatApiDate(),
-      );
-    } catch (error) {
-      console.error(
-        "저녁 미션 생성 실패:",
-        error.response?.data ?? error,
-      );
-    } finally {
-      setIsCreatingEvening(false);
-    }
-  };
-
-  const handleConfirmMissions = () => {
-    applyMissionEdit(
-      pendingMissionType,
-      pendingMissions,
-      recommendedMissions,
-    );
-
-    clearPendingMissionSelection();
-  };
-
-  const handleReselectCategory = () => {
-    const missionType = pendingMissionType;
-    const missions = pendingMissions;
-
-    clearPendingMissionSelection();
-
-    navigate("/edit", {
-      state: {
-        missionType,
-        missions,
-      },
-    });
-  };
+      navigate("/edit", {
+        state: {
+          missionType,
+          missions,
+        },
+      });
+    };
 
   useEffect(() => {
-    setHideFooter(isSetUpMode);
+    setHideFooter(
+      isSetUpMode,
+    );
 
     return () => {
       setHideFooter(false);
     };
-  }, [isSetUpMode, setHideFooter]);
+  }, [
+    isSetUpMode,
+    setHideFooter,
+  ]);
 
   return (
     <div>
@@ -427,22 +564,33 @@ function Home() {
 
         {showMissionSelection && (
           <MissionSelection
-            missions={recommendedMissions}
-            onConfirm={handleConfirmMissions}
-            onReselect={handleReselectCategory}
+            missions={
+              recommendedMissions
+            }
+            onConfirm={
+              handleConfirmMissions
+            }
+            onReselect={
+              handleReselectCategory
+            }
           />
         )}
       </div>
 
       <MissionNavBar
         activeTab={activeTab}
-        setActiveTab={setActiveTab}
+        setActiveTab={
+          setActiveTab
+        }
       />
 
-      {activeTab === "morning" ? (
+      {activeTab ===
+      "morning" ? (
         <>
           <MissionSection
-            missionData={morningMissions}
+            missionData={
+              morningMissions
+            }
             onClick={(id) =>
               handleMissionCheckBtn(
                 id,
@@ -457,14 +605,18 @@ function Home() {
           <StampProgressBtn
             title="스탬프 진행도"
             onClick={() =>
-              navigate("/stamp")
+              navigate(
+                "/stamp",
+              )
             }
           />
         </>
       ) : isEveningMissionSet ? (
         <>
           <MissionSection
-            missionData={eveningMissions}
+            missionData={
+              eveningMissions
+            }
             onClick={(id) =>
               handleMissionCheckBtn(
                 id,
@@ -479,7 +631,9 @@ function Home() {
           <StampProgressBtn
             title="스탬프 진행도"
             onClick={() =>
-              navigate("/stamp")
+              navigate(
+                "/stamp",
+              )
             }
           />
         </>
@@ -488,9 +642,15 @@ function Home() {
           <SetUpCharacterSection />
 
           <SkinConditionSection
-            selected={selected}
-            setSelected={setSelected}
-            conditions={eveningConditions}
+            selected={
+              selected
+            }
+            setSelected={
+              setSelected
+            }
+            conditions={
+              eveningConditions
+            }
           />
 
           <BigBtn
@@ -499,22 +659,29 @@ function Home() {
                 ? "미션 받는 중..."
                 : "맞춤 미션 받기"
             }
-            onClick={handleSetMissions}
+            onClick={
+              handleSetMissions
+            }
           />
         </>
       )}
 
       {showOverlay && (
         <SyncCompleteOverlay
-          onDone={hideSyncOverlay}
+          onDone={
+            hideSyncOverlay
+          }
         />
       )}
 
-      {earnedPoint !== null && (
+      {earnedPoint !==
+        null && (
         <CelebrationOverlay
           title="미션 성공!"
           description={`총 ${earnedPoint}포인트를 획득했어요.`}
-          onClose={closeCelebration}
+          onClose={
+            closeCelebration
+          }
         />
       )}
     </div>

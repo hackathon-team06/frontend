@@ -4,6 +4,8 @@ import SyncConfirm from "../../components/home/SyncConfirm";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+import backButton from "../../assets/images/google_back.svg";
+
 export default function GoogleCalendarSync() {
   const navigate = useNavigate();
   //현재 슬라이드 상태
@@ -19,13 +21,8 @@ export default function GoogleCalendarSync() {
 
   return (
     <div>
-      <div className="flex justify-between px-5.25 mt-4.25">
-        <button
-          onClick={() => navigate("/home")}
-          className="text-zinc-300 text-xs font-medium cursor-pointer"
-        >
-          뒤로가기
-        </button>
+      <div className="flex items-center justify-between px-5.25 mt-4.25">
+        <img src={backButton} className="cursor-pointer" onClick={() => navigate(-1)} />
         {step === 1 && (
           <button
             onClick={() => setStep(3)}

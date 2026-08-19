@@ -1,12 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
 import { getProductDetail } from "../../api/productDetail";
 import {
-  getPointPrice,
   likeProduct,
   unlikeProduct,
 } from "../../api/shop";
+import { getPointPrice } from "../../constants/product";
 import useLayoutStore from "../../store/useLayoutStore";
 import usePointStore from "../../store/usePointStore";
 
@@ -18,26 +18,30 @@ import PartnerLoading from "../../components/product/PartnerLoading";
 import heartFilled from "../../assets/icons/heart_filled.png";
 import heartOutline from "../../assets/icons/heart_outline.svg";
 import arrowBack from "../../assets/icons/arrow_back.svg";
-import star from "../../assets/icons/star.png";
 
 const CART_BUTTON_LABEL = "찜한 제품";
 
 const TOAST_DURATION = 3000;
 
+const REWARD_POINT_RATE = 0.01;
+
 export default function ProductDetail() {
   const { productId } = useParams();
   const navigate = useNavigate();
 
-  const detail = useMemo(
-    () => getProductDetail(productId),
-    [productId],
-  );
+  const [detail, setDetail] = useState(null);
+
+  const [isLoading, setIsLoading] = useState(true);
 
   const setHideFooter = useLayoutStore(
     (state) => state.setHideFooter,
   );
 
   const point = usePointStore((state) => state.point);
+
+  const fetchPoint = usePointStore(
+    (state) => state.fetchPoint,
+  );
 
   const [selectedOptionId, setSelectedOptionId] =
     useState(null);
@@ -47,12 +51,39 @@ export default function ProductDetail() {
   const [isMovingToPartner, setIsMovingToPartner] =
     useState(false);
 
-  const [pointAppliedPrice, setPointAppliedPrice] =
-    useState(null);
+  const [liked, setLiked] = useState(false);
 
-  const [liked, setLiked] = useState(
-    detail?.liked ?? false,
-  );
+  useEffect(() => {
+    let cancelled = false;
+
+    const fetchDetail = async () => {
+      setIsLoading(true);
+      setSelectedOptionId(null);
+
+      try {
+        const data = await getProductDetail(productId);
+
+        if (cancelled) return;
+
+        setDetail(data);
+        setLiked(data.liked ?? false);
+      } catch (error) {
+        if (cancelled) return;
+
+        console.error("상품 상세 조회 실패:", error);
+
+        setDetail(null);
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    };
+
+    fetchDetail();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [productId]);
 
   /* 상세 페이지에서는 Footer 숨기기 */
   useEffect(() => {
@@ -74,30 +105,10 @@ export default function ProductDetail() {
     return () => clearTimeout(timer);
   }, [toast]);
 
-  /* 포인트 적용 예상 가격 조회 */
+  /* 보유 포인트 조회 */
   useEffect(() => {
-    const fetchPointPrice = async () => {
-      try {
-        const data = await getPointPrice(
-          productId,
-          point,
-        );
-
-        setPointAppliedPrice(
-          data.pointAppliedPrice,
-        );
-      } catch (error) {
-        console.log(
-          "포인트 적용 예상 가격 조회 실패: ",
-          error,
-        );
-
-        setPointAppliedPrice(null);
-      }
-    };
-
-    fetchPointPrice();
-  }, [productId, point]);
+    fetchPoint();
+  }, [fetchPoint]);
 
   const selectedOption =
     detail?.options.find(
@@ -106,6 +117,10 @@ export default function ProductDetail() {
     ) ??
     detail?.options[0] ??
     null;
+
+  if (isLoading) {
+    return <div className="min-h-full bg-ink-50" />;
+  }
 
   if (!detail || !selectedOption) {
     return (
@@ -116,6 +131,12 @@ export default function ProductDetail() {
       </div>
     );
   }
+
+  // 선택한 옵션의 포인트 사용 가격
+  const pointAppliedPrice = getPointPrice(
+    selectedOption.price,
+    point,
+  );
 
   const handleToggleLike = async () => {
     try {
@@ -139,10 +160,12 @@ export default function ProductDetail() {
   };
 
   const handlePurchase = () => {
+    if (!detail.purchaseUrl) return;
+
     setIsMovingToPartner(true);
 
     setTimeout(() => {
-      setIsMovingToPartner(false);
+      window.location.href = detail.purchaseUrl;
     }, TOAST_DURATION);
   };
 
@@ -162,14 +185,14 @@ export default function ProductDetail() {
           type="button"
           onClick={() => navigate(-1)}
           aria-label="뒤로 가기"
-          className="absolute left-[17px] top-[11px] z-10 flex h-[32px] w-[16px] cursor-pointer items-center justify-center"
+          className="absolute left-[17px] top-[11px] z-10 flex h-[40px] w-[30px] cursor-pointer items-center justify-center"
         >
           <img
             src={arrowBack}
             alt=""
             style={{
-              width: 9.5,
-              height: 17.3,
+              width: 23,
+              height: 28,
             }}
           />
         </button>
@@ -198,9 +221,7 @@ export default function ProductDetail() {
           포인트 사용시
 
           <span className="text-mint-500">
-            {pointAppliedPrice !== null
-              ? pointAppliedPrice.toLocaleString()
-              : "-"}
+            {pointAppliedPrice.toLocaleString()}
           </span>
 
           <PointBadge />
@@ -247,37 +268,12 @@ export default function ProductDetail() {
           <span className="ml-[4px] text-[14px] font-medium leading-[20px] text-ink-900">
             상품 구매시{" "}
             <span className="text-mint-500">
-              {detail.rewardPoint.toLocaleString()}
+              {Math.round(
+                selectedOption.price * REWARD_POINT_RATE,
+              ).toLocaleString()}
               포인트
             </span>{" "}
             적립
-          </span>
-
-          <Chevron />
-        </div>
-
-        {/* 평점 / 리뷰 */}
-        <div className="mt-[11px] flex items-center">
-          <span className="flex items-center gap-[3px] text-[14px] font-medium leading-[20px] text-ink-900">
-            평점
-            <span className="size-[2px] rounded-[2px] bg-ink-900" />
-            리뷰
-          </span>
-
-          <img
-            src={star}
-            alt=""
-            className="ml-[23px] size-[14px]"
-          />
-
-          <span className="ml-[3px] text-[14px] font-medium leading-[20px] text-ink-900">
-            {detail.rating}
-          </span>
-
-          <span className="ml-[8px] h-[12px] w-px bg-ink-900" />
-
-          <span className="ml-[4px] text-[14px] font-medium leading-[20px] text-ink-900">
-            리뷰 {detail.reviewCount.toLocaleString()}
           </span>
 
           <Chevron />
@@ -318,22 +314,11 @@ export default function ProductDetail() {
           }
           className="absolute left-[19px] top-[41px] flex size-[32px] cursor-pointer items-center justify-center"
         >
-          {liked ? (
-            <img
-              src={heartFilled}
-              alt=""
-              className="size-[28px]"
-            />
-          ) : (
-            <img
-              src={heartOutline}
-              alt=""
-              style={{
-                width: 28,
-                height: 26,
-              }}
-            />
-          )}
+          <img
+            src={liked ? heartFilled : heartOutline}
+            alt=""
+            className={liked ? "size-[34px]" : "size-[24px]"}
+          />
         </button>
 
         {/* 찜 목록 */}

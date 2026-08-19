@@ -1,4 +1,5 @@
 // 아무 기능이 없으므로 하드 코딩으로 구현
+import nextButton from "../../assets/images/google_next.svg";
 
 export default function FirstIntro({ onClick }) {
   return (
@@ -87,18 +88,19 @@ export default function FirstIntro({ onClick }) {
           </div>
         </div>
       </div>
-      <div className="flex gap-5.5 justify-center mt-40">
+      <div className="flex gap-5.5 justify-center mt-56">
         <div className="size-2 rounded-xl bg-emerald-300" />
         <div className="size-2 rounded-xl bg-green-200" />
         <div className="size-2 rounded-xl bg-green-200" />
       </div>
-      <div className="pl-66.5 mt-17.25">
+      <div className="flex gap-[2px] pl-66.5 mt-11.25">
         <button
           onClick={onClick}
           className="cursor-pointer text-cyan-900 text-xl font-semibold"
         >
           다음으로
         </button>
+        <img src={nextButton} className="cursor-pointer" onClick={onClick} />
       </div>
     </>
   );

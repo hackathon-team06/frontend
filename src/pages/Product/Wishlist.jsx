@@ -55,12 +55,12 @@ export default function Wishlist() {
           type="button"
           onClick={() => navigate("/product")}
           aria-label="뒤로 가기"
-          className="absolute left-[23px] top-[25px] z-10 flex h-[36px] w-[18px] cursor-pointer items-center justify-center"
+          className="absolute left-[23px] top-[25px] z-10 flex h-[35px] w-[22px] cursor-pointer items-center justify-center"
         >
           <img
             src={arrowBack}
             alt=""
-            style={{ width: 10.7, height: 19.46 }}
+            style={{ width: 30, height: 30 }}
           />
         </button>
 
