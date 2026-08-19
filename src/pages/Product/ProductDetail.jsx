@@ -31,6 +31,8 @@ export default function ProductDetail() {
 
   const [detail, setDetail] = useState(null);
 
+  const [isLoading, setIsLoading] = useState(true);
+
   const setHideFooter = useLayoutStore(
     (state) => state.setHideFooter,
   );
@@ -52,18 +54,35 @@ export default function ProductDetail() {
   const [liked, setLiked] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
+
     const fetchDetail = async () => {
+      setIsLoading(true);
+      setSelectedOptionId(null);
+
       try {
         const data = await getProductDetail(productId);
+
+        if (cancelled) return;
 
         setDetail(data);
         setLiked(data.liked ?? false);
       } catch (error) {
+        if (cancelled) return;
+
         console.error("상품 상세 조회 실패:", error);
+
+        setDetail(null);
+      } finally {
+        if (!cancelled) setIsLoading(false);
       }
     };
 
     fetchDetail();
+
+    return () => {
+      cancelled = true;
+    };
   }, [productId]);
 
   /* 상세 페이지에서는 Footer 숨기기 */
@@ -98,6 +117,10 @@ export default function ProductDetail() {
     ) ??
     detail?.options[0] ??
     null;
+
+  if (isLoading) {
+    return <div className="min-h-full bg-ink-50" />;
+  }
 
   if (!detail || !selectedOption) {
     return (
@@ -137,10 +160,12 @@ export default function ProductDetail() {
   };
 
   const handlePurchase = () => {
+    if (!detail.purchaseUrl) return;
+
     setIsMovingToPartner(true);
 
     setTimeout(() => {
-      setIsMovingToPartner(false);
+      window.location.href = detail.purchaseUrl;
     }, TOAST_DURATION);
   };
 

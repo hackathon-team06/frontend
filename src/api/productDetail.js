@@ -64,7 +64,6 @@ export async function getProductDetail(productId) {
 
     freeShipping: true,
 
-
     hasOptions: options.length > 0,
 
     amountLabels,
