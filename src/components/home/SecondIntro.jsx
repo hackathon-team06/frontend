@@ -2,6 +2,7 @@
 import HomeImage from "../../assets/images/intro_home.svg";
 import MorningMissionImage from "../../assets/images/intro_morning_mission.svg";
 import EveningMissionImage from "../../assets/images/intro_evening_mission.svg";
+import nextButton from "../../assets/images/google_next.svg";
 
 export default function SecondIntro({ onClick }) {
   return (
@@ -37,13 +38,14 @@ export default function SecondIntro({ onClick }) {
         <div className="size-2 rounded-xl bg-emerald-300" />
         <div className="size-2 rounded-xl bg-green-200" />
       </div>
-      <div className="pl-66.5 mt-11.5">
+      <div className="flex gap-[2px] pl-66.5 mt-11.5">
         <button
           onClick={onClick}
           className="cursor-pointer text-cyan-900 text-xl font-semibold"
         >
           다음으로
         </button>
+        <img src={nextButton} className="cursor-pointer" onClick={onClick} />
       </div>
     </>
   );
