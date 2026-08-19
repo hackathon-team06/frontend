@@ -18,3 +18,10 @@ export const getStampBooks = async () => {
 
   return response.data;
 };
+
+// 목표일까지 남은 디데이 조회
+export const getStampCountdown = async () => {
+  const response = await api.get("/api/stamps/books/countdown");
+
+  return response.data;
+};

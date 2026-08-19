@@ -5,6 +5,7 @@ import WeatherTipSection from "../../components/home/WeatherTipSection";
 import WeekCalenderSection from "../../components/home/WeekCalendarSection";
 import StampProgressBtn from "../../components/home/StampProgressBtn";
 import { getSchedulesByDate } from "../../api/schedule";
+import { getStampCountdown } from "../../api/stamp";
 import useAuthStore from "../../store/useAuthStore";
 import useOnboardingStore from "../../store/useOnboardingStore";
 
@@ -27,7 +28,6 @@ const STAMP_PERIOD_CONFIGS = {
   7: {
     mapImage: map7,
     goalDay: 7,
-    dDay: 4,
 
     mapHeight: 480,
     mapWidth: 370,
@@ -58,7 +58,6 @@ const STAMP_PERIOD_CONFIGS = {
   14: {
     mapImage: map14,
     goalDay: 14,
-    dDay: 11,
 
     mapWidth: 330,
     mapHeight: 530,
@@ -117,7 +116,6 @@ const STAMP_PERIOD_CONFIGS = {
   21: {
     mapImage: map21,
     goalDay: 21,
-    dDay: 18,
 
     mapHeight: 660,
     mapWidth: 370,
@@ -204,7 +202,6 @@ const STAMP_PERIOD_CONFIGS = {
   28: {
     mapImage: map28,
     goalDay: 28,
-    dDay: 25,
 
     mapHeight: 900,
     mapWidth: 370,
@@ -408,9 +405,7 @@ const getScheduleIcon = (schedule) => {
 
 const formatDate = (date) => {
   const year = date.getFullYear();
-
   const month = String(date.getMonth() + 1).padStart(2, "0");
-
   const day = String(date.getDate()).padStart(2, "0");
 
   return `${year}-${month}-${day}`;
@@ -472,14 +467,45 @@ export default function Stamp() {
 
   const accessToken = useAuthStore((state) => state.accessToken);
 
-  // RoutineStep에서 선택한 관리 주기
-  const selectedPeriod =
-    useOnboardingStore((state) => state.routine) || 7;
+  const onboardingPeriod = useOnboardingStore((state) => state.routine);
 
-  // 선택한 주기에 맞는 지도 설정
-  const periodConfig = STAMP_PERIOD_CONFIGS[selectedPeriod];
-
+  const [countdown, setCountdown] = useState(null);
   const [schedules, setSchedules] = useState([]);
+
+  // API에서 받은 실제 스탬프북 주기를 우선 사용
+  const selectedPeriod = countdown?.periodDays || onboardingPeriod || 7;
+
+  const periodConfig =
+    STAMP_PERIOD_CONFIGS[selectedPeriod] || STAMP_PERIOD_CONFIGS[7];
+
+  // 현재 UI에서 GO는 4일차를 의미
+  const currentGoDay = 4;
+
+  // GO 기준으로 목표일까지 남은 일수 계산
+  // 7일 주기 → D-4
+  // 14일 주기 → D-11
+  // 21일 주기 → D-18
+  // 28일 주기 → D-25
+  const displayDDay = `D-${Math.max(
+    selectedPeriod - currentGoDay + 1,
+    0,
+  )}`;
+
+  useEffect(() => {
+    const fetchCountdown = async () => {
+      try {
+        const data = await getStampCountdown();
+
+        setCountdown(data);
+      } catch (error) {
+        console.error("스탬프 디데이 조회 실패:", error);
+      }
+    };
+
+    if (accessToken) {
+      fetchCountdown();
+    }
+  }, [accessToken]);
 
   useEffect(() => {
     const fetchSchedules = async () => {
@@ -550,7 +576,7 @@ export default function Stamp() {
     };
 
     fetchSchedules();
-  }, [accessToken, selectedPeriod]);
+  }, [accessToken, selectedPeriod, periodConfig]);
 
   const handlePeriodClick = (selectedDay, registeredSchedule) => {
     if (registeredSchedule) {
@@ -580,7 +606,7 @@ export default function Stamp() {
       <p className="text-stone-950 text-lg font-medium mt-[30px] ml-[18px]">
         목표까지{" "}
         <span className="logo-font text-lg font-semibold text-stone-950">
-          D-{periodConfig.dDay}
+          {displayDDay}
         </span>
       </p>
 
@@ -593,7 +619,6 @@ export default function Stamp() {
           marginTop: `${periodConfig.mapMarginTop ?? 0}px`,
         }}
       >
-        {/* 주기별 지도 */}
         <img
           src={periodConfig.mapImage}
           alt={`${selectedPeriod}일 미션 지도`}
@@ -603,7 +628,6 @@ export default function Stamp() {
           }}
         />
 
-        {/* 1 ~ 3일 완료 스탬프 */}
         {periodConfig.stampPositions.map((position, index) => (
           <img
             key={index}
@@ -613,7 +637,6 @@ export default function Stamp() {
           />
         ))}
 
-        {/* 현재 위치 GO */}
         <div
           className={`absolute z-10 ${periodConfig.goClassName} rounded-[50px] w-[60px] h-[60px] bg-white border-[2px] border-[#2E4972] flex items-center justify-center pointer-events-none`}
         >
@@ -622,7 +645,6 @@ export default function Stamp() {
           </div>
         </div>
 
-        {/* 일정 등록 가능한 날짜 */}
         {periodConfig.periodNumbers.map((item) => {
           const registeredSchedule = schedules.find(
             (schedule) => schedule.dayNumber === item.number,
@@ -641,7 +663,6 @@ export default function Stamp() {
           );
         })}
 
-        {/* 마지막 목표 날짜 */}
         <div
           className={`absolute z-10 ${periodConfig.goalClassName} rounded-[50px] w-[90px] h-[90px] bg-white border-[2px] border-[#64DDCD] flex items-center justify-center pointer-events-none`}
         >
