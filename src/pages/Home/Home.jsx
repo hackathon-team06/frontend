@@ -38,11 +38,21 @@ function Home() {
 
   const connect = useGoogleCalendarStore((state) => state.connect);
 
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const connect = useGoogleCalendarStore((state) => state.connect);
+
   const clearJustConnected = useGoogleCalendarStore(
     (state) => state.clearJustConnected,
   );
 
+  // 구글 동의를 마치면 백엔드가 ?calendar=connected 를 붙여 여기로 돌려보냅니다.
+  // 외부에서 들어오는 전체 페이지 로드라 스토어는 초기 상태이고,
+  // 연동이 됐는지는 주소로만 알 수 있습니다. 그래서 첫 렌더에서 주소를 바로 읽습니다.
   const [showOverlay, setShowOverlay] = useState(
+    () =>
+      useGoogleCalendarStore.getState().justConnected ||
+      searchParams.get("calendar") === "connected",
     () =>
       useGoogleCalendarStore.getState().justConnected ||
       searchParams.get("calendar") === "connected",
