@@ -64,7 +64,6 @@ export async function getProductDetail(productId) {
 
     freeShipping: true,
 
-    rewardPoint: Math.round(product.price * 0.0163),
 
     hasOptions: options.length > 0,
 

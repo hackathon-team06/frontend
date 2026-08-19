@@ -23,6 +23,8 @@ const CART_BUTTON_LABEL = "찜한 제품";
 
 const TOAST_DURATION = 3000;
 
+const REWARD_POINT_RATE = 0.01;
+
 export default function ProductDetail() {
   const { productId } = useParams();
   const navigate = useNavigate();
@@ -241,7 +243,9 @@ export default function ProductDetail() {
           <span className="ml-[4px] text-[14px] font-medium leading-[20px] text-ink-900">
             상품 구매시{" "}
             <span className="text-mint-500">
-              {detail.rewardPoint.toLocaleString()}
+              {Math.round(
+                selectedOption.price * REWARD_POINT_RATE,
+              ).toLocaleString()}
               포인트
             </span>{" "}
             적립
