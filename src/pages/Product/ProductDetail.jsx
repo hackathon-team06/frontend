@@ -3,10 +3,10 @@ import { useNavigate, useParams } from "react-router-dom";
 
 import { getProductDetail } from "../../api/productDetail";
 import {
-  getPointPrice,
   likeProduct,
   unlikeProduct,
 } from "../../api/shop";
+import { getPointPrice } from "../../constants/product";
 import useLayoutStore from "../../store/useLayoutStore";
 import usePointStore from "../../store/usePointStore";
 
@@ -38,6 +38,10 @@ export default function ProductDetail() {
 
   const point = usePointStore((state) => state.point);
 
+  const fetchPoint = usePointStore(
+    (state) => state.fetchPoint,
+  );
+
   const [selectedOptionId, setSelectedOptionId] =
     useState(null);
 
@@ -45,9 +49,6 @@ export default function ProductDetail() {
 
   const [isMovingToPartner, setIsMovingToPartner] =
     useState(false);
-
-  const [pointAppliedPrice, setPointAppliedPrice] =
-    useState(null);
 
   const [liked, setLiked] = useState(
     detail?.liked ?? false,
@@ -73,30 +74,10 @@ export default function ProductDetail() {
     return () => clearTimeout(timer);
   }, [toast]);
 
-  /* 포인트 적용 예상 가격 조회 */
+  /* 보유 포인트 조회 */
   useEffect(() => {
-    const fetchPointPrice = async () => {
-      try {
-        const data = await getPointPrice(
-          productId,
-          point,
-        );
-
-        setPointAppliedPrice(
-          data.pointAppliedPrice,
-        );
-      } catch (error) {
-        console.log(
-          "포인트 적용 예상 가격 조회 실패: ",
-          error,
-        );
-
-        setPointAppliedPrice(null);
-      }
-    };
-
-    fetchPointPrice();
-  }, [productId, point]);
+    fetchPoint();
+  }, [fetchPoint]);
 
   const selectedOption =
     detail?.options.find(
@@ -115,6 +96,12 @@ export default function ProductDetail() {
       </div>
     );
   }
+
+  // 선택한 옵션의 포인트 사용 가격
+  const pointAppliedPrice = getPointPrice(
+    selectedOption.price,
+    point,
+  );
 
   const handleToggleLike = async () => {
     try {
@@ -197,9 +184,7 @@ export default function ProductDetail() {
           포인트 사용시
 
           <span className="text-mint-500">
-            {pointAppliedPrice !== null
-              ? pointAppliedPrice.toLocaleString()
-              : "-"}
+            {pointAppliedPrice.toLocaleString()}
           </span>
 
           <PointBadge />

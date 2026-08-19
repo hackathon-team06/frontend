@@ -6,7 +6,6 @@ import usePointStore from "../../store/usePointStore";
 import useUserStore from "../../store/useUserStore";
 
 import { toProfile } from "../../api/mypage";
-import { getMyPoint } from "../../api/point";
 import { getStampBooks } from "../../api/stamp";
 
 import ProfileCard from "../../components/mypage/ProfileCard";
@@ -66,8 +65,8 @@ export default function MyPage() {
     (state) => state.point,
   );
 
-  const setPoint = usePointStore(
-    (state) => state.setPoint,
+  const fetchPoint = usePointStore(
+    (state) => state.fetchPoint,
   );
 
   const [stampBooks, setStampBooks] = useState([]);
@@ -84,21 +83,8 @@ export default function MyPage() {
   }, [user, fetchUser]);
 
   useEffect(() => {
-    const fetchPoint = async () => {
-      try {
-        const data = await getMyPoint();
-
-        setPoint(data.point);
-      } catch (error) {
-        console.error(
-          "포인트 조회 실패:",
-          error,
-        );
-      }
-    };
-
     fetchPoint();
-  }, [setPoint]);
+  }, [fetchPoint]);
 
   useEffect(() => {
     const fetchStampBooks = async () => {

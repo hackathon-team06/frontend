@@ -148,9 +148,9 @@ function Home() {
         state.setHideFooter,
     );
 
-  const addPoint =
+  const fetchPoint =
     usePointStore(
-      (state) => state.addPoint,
+      (state) => state.fetchPoint,
     );
 
   const morningMissions =
@@ -429,10 +429,6 @@ function Home() {
 
     if (!isAllDone) return;
 
-    addPoint(
-      FULL_COMPLETION_BONUS,
-    );
-
     markBonusAwarded(
       formatApiDate(),
     );
@@ -541,15 +537,12 @@ function Home() {
       const missionKey =
         `${tab}-${id}`;
 
+      // 축하 화면 중복 표시 방지용 기록
       if (
         !awardedKeysToday.includes(
           missionKey,
         )
       ) {
-        addPoint(
-          target.point,
-        );
-
         addAwardedMissionKey(
           missionKey,
           formatApiDate(),
@@ -573,6 +566,9 @@ function Home() {
           isMorningBlocked,
         ),
       );
+
+      // 서버 적립분 반영
+      fetchPoint();
     };
 
   const closeCelebration =
