@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import useOnboardingStore from "../../store/useOnboardingStore";
 import usePointStore from "../../store/usePointStore";
-import { SKIN_TYPES, CATEGORIES } from "../../mocks/products";
+import { SKIN_TYPES, CATEGORIES } from "../../constants/product";
 import {
   getProducts,
   likeProduct,
