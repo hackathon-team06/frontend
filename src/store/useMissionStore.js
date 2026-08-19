@@ -172,10 +172,6 @@ const useMissionStore = create(
       pendingMissions: [],
       pendingRecommendedMissions: [],
 
-      awardedDate: null,
-      awardedMissionKeys: [],
-      bonusAwarded: false,
-
       setMissionsByType: (
         missionType,
         missions,
@@ -183,36 +179,6 @@ const useMissionStore = create(
         set({
           [getMissionKey(missionType)]:
             missions,
-        }),
-
-      addAwardedMissionKey: (
-        missionKey,
-        today,
-      ) =>
-        set((state) => {
-          const isToday =
-            state.awardedDate === today;
-
-          return {
-            awardedDate: today,
-
-            awardedMissionKeys: isToday
-              ? [
-                  ...state.awardedMissionKeys,
-                  missionKey,
-                ]
-              : [missionKey],
-
-            bonusAwarded: isToday
-              ? state.bonusAwarded
-              : false,
-          };
-        }),
-
-      markBonusAwarded: (today) =>
-        set({
-          awardedDate: today,
-          bonusAwarded: true,
         }),
 
       markEveningMissionsSet: (
@@ -277,15 +243,6 @@ const useMissionStore = create(
 
         eveningSetDate:
           state.eveningSetDate,
-
-        awardedDate:
-          state.awardedDate,
-
-        awardedMissionKeys:
-          state.awardedMissionKeys,
-
-        bonusAwarded:
-          state.bonusAwarded,
       }),
     },
   ),

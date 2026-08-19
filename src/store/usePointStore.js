@@ -11,6 +11,9 @@ const usePointStore = create((set, get) => ({
   status: "idle", // "idle" | "loading" | "error"
 
   // 함수
+  setPoint: (point) =>
+    set({ point, status: "idle" }),
+
   fetchPoint: async () => {
     lastRequestId += 1;
 
