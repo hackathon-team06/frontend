@@ -134,8 +134,6 @@ function Home() {
     (state) => state.pendingRecommendedMissions,
   );
 
-  const applyMissionEdit = useMissionStore((state) => state.applyMissionEdit);
-
   const clearPendingMissionSelection = useMissionStore(
     (state) => state.clearPendingMissionSelection,
   );
@@ -308,21 +306,11 @@ function Home() {
     }
   };
 
-  // 아침은 서버에 저장되므로 다시 조회해 stepId를 받아옴
+  // 수정 결과는 서버에 저장되므로 다시 조회해 stepId를 받아옴
   const handleConfirmMissions = () => {
-    const missionType = pendingMissionType;
-
-    const missions = pendingMissions;
-
     clearPendingMissionSelection();
 
-    if (missionType === "morning") {
-      fetchMissions().catch(() => {});
-
-      return;
-    }
-
-    applyMissionEdit(missionType, missions, recommendedMissions);
+    fetchMissions().catch(() => {});
   };
 
   const handleReselectCategory = () => {
