@@ -163,8 +163,18 @@ export default function MissionEdit() {
       setDeleteError("");
 
       try {
+        const routine = await getMorningRoutine();
+
+        const latestItemIdByContent = Object.fromEntries(
+          (routine?.items ?? []).map((item) => [item.content, item.itemId]),
+        );
+
+        setItemIdByContent(latestItemIdByContent);
+
         for (const mission of removedMorning) {
-          const itemId = itemIdByContent[mission.title];
+          const itemId =
+            latestItemIdByContent[mission.title] ??
+            itemIdByContent[mission.title];
 
           if (itemId) {
             await deleteMorningRoutineItem(itemId);
@@ -184,6 +194,25 @@ export default function MissionEdit() {
   };
 
   const handleMissionProgress = async () => {
+    // 자리가 비어야 서버가 추천해주므로 지운 미션을 먼저 삭제
+    if (activeTab === "evening") {
+      try {
+        const removedMissions = currentMissions.filter(
+          (mission) => mission.removed,
+        );
+
+        for (const mission of removedMissions) {
+          await deleteEveningMissionStep(mission.id);
+        }
+      } catch (error) {
+        console.error("저녁 미션 삭제 실패:", error);
+
+        setDeleteError("미션을 지우지 못했어요. 잠시 후 다시 시도해주세요.");
+
+        return;
+      }
+    }
+
     let newRecommendedMissions;
 
     try {
@@ -198,32 +227,16 @@ export default function MissionEdit() {
 
     if (activeTab === "morning") {
       try {
-        const keptMissions = currentMissions.filter(
-          (mission) => !mission.removed,
-        );
+        // 삭제 후 부족한 개수만 추가 저장하는 API 라 새로 받은 것만 전달
+        const items = newRecommendedMissions.map((mission) => ({
+          content: mission.title,
+          category: mission.category ?? null,
+          source: mission.source ?? "CUSTOM",
+        }));
 
-        const finalMorningMissions = [
-          ...keptMissions,
-          ...newRecommendedMissions,
-        ].slice(0, 3);
-
-        const currentRoutine = await getMorningRoutine();
-
-        const routineItemByContent = Object.fromEntries(
-          (currentRoutine?.items ?? []).map((item) => [item.content, item]),
-        );
-
-        const items = finalMorningMissions.map((mission) => {
-          const existingItem = routineItemByContent[mission.title];
-
-          return {
-            content: mission.title,
-            category: existingItem?.category ?? mission.category ?? null,
-            source: existingItem?.source ?? mission.source ?? "CUSTOM",
-          };
-        });
-
-        await saveMorningRoutine(items);
+        if (items.length > 0) {
+          await saveMorningRoutine(items);
+        }
       } catch (error) {
         console.error("아침 미션 수정 저장 실패:", error);
 
@@ -237,14 +250,6 @@ export default function MissionEdit() {
 
     if (activeTab === "evening") {
       try {
-        const removedMissions = currentMissions.filter(
-          (mission) => mission.removed,
-        );
-
-        for (const mission of removedMissions) {
-          await deleteEveningMissionStep(mission.id);
-        }
-
         const steps = newRecommendedMissions.map((mission) => mission.title);
 
         if (steps.length > 0) {
