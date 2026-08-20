@@ -156,19 +156,24 @@ export default function MissionEdit() {
       setIsDeleting(true);
       setDeleteError("");
 
+      // 루틴이 아직 없으면 404 가 나므로 조회 실패는 넘어감
+      let latestItemIdByContent = itemIdByContent;
+
       try {
         const routine = await getMorningRoutine();
 
-        const latestItemIdByContent = Object.fromEntries(
+        latestItemIdByContent = Object.fromEntries(
           (routine?.items ?? []).map((item) => [item.content, item.itemId]),
         );
 
         setItemIdByContent(latestItemIdByContent);
+      } catch (error) {
+        console.error("고정 아침 미션 조회 실패:", error);
+      }
 
+      try {
         for (const mission of removedMorning) {
-          const itemId =
-            latestItemIdByContent[mission.title] ??
-            itemIdByContent[mission.title];
+          const itemId = latestItemIdByContent[mission.title];
 
           if (itemId) {
             await deleteMorningRoutineItem(itemId);
@@ -288,6 +293,7 @@ export default function MissionEdit() {
           setActiveTab(tab);
           setShowCategory(false);
           setSelectedCategories([]);
+          setDeleteError("");
         }}
       />
 
