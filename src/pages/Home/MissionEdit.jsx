@@ -8,6 +8,7 @@ import useMissionStore from "../../store/useMissionStore";
 import {
   deleteMorningRoutineItem,
   getMorningRoutine,
+  saveMorningRoutine,
 } from "../../api/mission";
 
 import backButton from "../../assets/images/back_button.svg";
@@ -92,9 +93,7 @@ export default function MissionEdit() {
   const currentMissions =
     activeTab === "morning" ? morningMissions : eveningMissions;
 
-  const isTabLocked = currentMissions.some(
-    (mission) => mission.completed,
-  );
+  const isTabLocked = currentMissions.some((mission) => mission.completed);
 
   const morningRemovedCount = morningMissions.filter(
     (mission) => mission.removed,
@@ -225,10 +224,48 @@ export default function MissionEdit() {
     setSelectedCategories([]);
   };
 
-  const handleMissionProgress = () => {
+  const handleMissionProgress = async () => {
     const newRecommendedMissions = getRecommendedMissions();
 
-    // 미션 진행하기를 눌렀을 때만 true
+    if (activeTab === "morning") {
+      try {
+        const keptMissions = currentMissions.filter(
+          (mission) => !mission.removed,
+        );
+
+        const finalMorningMissions = [
+          ...keptMissions,
+          ...newRecommendedMissions,
+        ].slice(0, 3);
+
+        const currentRoutine = await getMorningRoutine();
+
+        const routineItemByContent = Object.fromEntries(
+          (currentRoutine?.items ?? []).map((item) => [item.content, item]),
+        );
+
+        const items = finalMorningMissions.map((mission) => {
+          const existingItem = routineItemByContent[mission.title];
+
+          return {
+            content: mission.title,
+            category: existingItem?.category ?? mission.category ?? null,
+            source: existingItem?.source ?? mission.source ?? "CUSTOM",
+          };
+        });
+
+        await saveMorningRoutine(items);
+      } catch (error) {
+        console.error("아침 미션 수정 저장 실패:", error);
+
+        setDeleteError(
+          "수정한 미션을 저장하지 못했어요. 잠시 후 다시 시도해주세요.",
+        );
+
+        return;
+      }
+    }
+
     setPendingMissionSelection(
       activeTab,
       currentMissions,
