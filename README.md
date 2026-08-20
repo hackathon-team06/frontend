@@ -39,7 +39,7 @@ AI가 상황에 맞는 홈케어 미션을 제공하여 건강한 루틴을 부�
 
 | 구분 | 기술 | 활용 |
 | :--- | :--- | :--- |
-| **Frontend** | React 19, JavaScript (ES6+), JSX | 컴포넌트 기반 SPA 개발 |
+| **Frontend** | HTML5, React 19, JavaScript (ES6+), JSX | 컴포넌트 기반 SPA 개발 |
 | **Build Tool** | Vite 8 | 개발 서버 및 프로덕션 빌드 |
 | **Routing** | React Router DOM 7 | 페이지 라우팅 및 동적 경로 관리 |
 | **State Management** | Zustand 5, Persist Middleware | 인증, 사용자, 온보딩, 미션 및 포인트 상태 관리 |
