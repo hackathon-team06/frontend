@@ -229,30 +229,11 @@ export default function MissionEdit() {
 
     if (activeTab === "morning") {
       try {
-        const keptMissions = currentMissions.filter(
-          (mission) => !mission.removed,
-        );
-
-        const finalMorningMissions = [
-          ...keptMissions,
-          ...newRecommendedMissions,
-        ].slice(0, 3);
-
-        const currentRoutine = await getMorningRoutine();
-
-        const routineItemByContent = Object.fromEntries(
-          (currentRoutine?.items ?? []).map((item) => [item.content, item]),
-        );
-
-        const items = finalMorningMissions.map((mission) => {
-          const existingItem = routineItemByContent[mission.title];
-
-          return {
-            content: mission.title,
-            category: existingItem?.category ?? mission.category ?? null,
-            source: existingItem?.source ?? mission.source ?? "CUSTOM",
-          };
-        });
+        const items = newRecommendedMissions.map((mission) => ({
+          content: mission.title,
+          category: mission.category ?? null,
+          source: mission.source ?? "CUSTOM",
+        }));
 
         await saveMorningRoutine(items);
       } catch (error) {
