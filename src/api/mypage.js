@@ -55,18 +55,17 @@ function statusOf(stampId, year, month, day) {
   return "none"; // 미참여
 }
 
-export function toProfile(user, fallback = {}) {
+export function toProfile(user) {
   const server = user ?? {};
 
   return {
-    nickname: fallback.nickname || server.nickname || DEFAULT_NICKNAME,
+    nickname: server.nickname || DEFAULT_NICKNAME,
 
-    age: server.age ?? fallback.age ?? 24,
+    age: server.age ?? 24,
 
-    skinTypeLabel: `${server.skinType || fallback.skinType || "지성"}피부`,
+    skinTypeLabel: `${server.skinType || "지성"}피부`,
 
-    goal:
-      server.careMotivation || fallback.purpose || server.goal || "촉촉한 피부",
+    goal: server.careMotivation || server.goal || "촉촉한 피부",
 
     profileImageUrl: server.profileImageUrl || null,
 
