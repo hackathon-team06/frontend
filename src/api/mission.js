@@ -78,3 +78,12 @@ export const completeMissionStep = async (stepId) => {
   const response = await api.patch(`/api/missions/steps/${stepId}`);
   return response.data;
 };
+
+// 날짜별 미션 조회
+export const getMissionsByDate = async (userId, date) => {
+  const response = await api.get("/api/missions/date", {
+    params: { userId, date },
+  });
+
+  return response.data;
+};

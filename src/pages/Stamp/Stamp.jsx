@@ -7,6 +7,7 @@ import StampProgressBtn from "../../components/home/StampProgressBtn";
 import { getSchedulesByDate } from "../../api/schedule";
 import useAuthStore from "../../store/useAuthStore";
 import useOnboardingStore from "../../store/useOnboardingStore";
+import { getUserIdFromToken } from "../../utils/token";
 
 import map7 from "../../assets/images/map7.svg";
 import map14 from "../../assets/images/map14.svg";
@@ -331,20 +332,6 @@ const categoryLabelMap = {
   EVENT: "이벤트",
   TALK: "친목/수다",
   CEREMONY: "행사",
-};
-
-const getUserIdFromToken = (accessToken) => {
-  if (!accessToken) return null;
-
-  try {
-    const payload = accessToken.split(".")[1];
-    const decodedPayload = JSON.parse(atob(payload));
-
-    return Number(decodedPayload.sub);
-  } catch (error) {
-    console.error("사용자 ID 확인 실패:", error);
-    return null;
-  }
 };
 
 const hasFinalConsonant = (word) => {

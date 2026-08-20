@@ -15,6 +15,7 @@ import BigBtn from "../../components/home/BigBtn";
 import SyncCompleteOverlay from "../../components/home/SyncCompleteOverlay";
 import CelebrationOverlay from "../../components/common/CelebrationOverlay";
 
+import useAuthStore from "../../store/useAuthStore";
 import useGoogleCalendarStore from "../../store/useGoogleCalendarStore";
 import useLayoutStore from "../../store/useLayoutStore";
 import useMissionStore from "../../store/useMissionStore";
@@ -26,11 +27,13 @@ import {
   createEveningMission,
   createMorningMission,
   getMissionOptions,
+  getMissionsByDate,
   getMorningRoutine,
-  getTodayMissions,
 } from "../../api/mission";
 
 import { formatApiDate } from "../../utils/getDate";
+
+import { getUserIdFromToken } from "../../utils/token";
 
 import { toCategoryByContent } from "../../utils/missionIcon";
 
@@ -48,6 +51,8 @@ function Home() {
   const user = useUserStore((state) => state.user);
 
   const fetchUser = useUserStore((state) => state.fetchUser);
+
+  const accessToken = useAuthStore((state) => state.accessToken);
 
   const [showOverlay, setShowOverlay] = useState(
     () =>
@@ -135,13 +140,9 @@ function Home() {
     (state) => state.clearPendingMissionSelection,
   );
 
-  const eveningSetDate = useMissionStore((state) => state.eveningSetDate);
-
   const markEveningMissionsSet = useMissionStore(
     (state) => state.markEveningMissionsSet,
   );
-
-  const setEveningMission = useMissionStore((state) => state.setEveningMission);
 
   // 실제 저녁 미션 데이터가 있을 때만 미션 목록 표시
   const isEveningMissionSet = eveningMissions.length > 0;
@@ -153,52 +154,56 @@ function Home() {
     syncMissionDate(formatApiDate());
   }, [syncMissionDate]);
 
-  // 오늘 미션 조회
-  useEffect(() => {
-    const fetchTodayMissions = async () => {
+  // 오늘 미션 조회. 완료 여부는 서버 값을 그대로 사용
+  const fetchMissions = useCallback(async () => {
+    const userId = getUserIdFromToken(accessToken);
+
+    if (!userId) return;
+
+    const today = formatApiDate();
+
+    let missions = await getMissionsByDate(userId, today);
+
+    let morningMission = missions.find(
+      (mission) => mission.missionTime === "MORNING",
+    );
+
+    // 오늘 아침 미션이 없으면 생성 후 다시 조회
+    if (!morningMission) {
       try {
-        const data = await getTodayMissions();
+        await createMorningMission();
 
-        console.log("오늘 미션 조회:", data);
+        missions = await getMissionsByDate(userId, today);
 
-        let { morningMission } = data;
-
-        // 오늘 아침 미션이 없으면 생성
-        if (!morningMission) {
-          try {
-            morningMission = await createMorningMission();
-          } catch (error) {
-            console.error("오늘 아침 미션 생성 실패:", error);
-          }
-        }
-
-        // 아침 고정 루틴 category 조회
-        let categoryByContent = {};
-
-        try {
-          categoryByContent = toCategoryByContent(await getMorningRoutine());
-        } catch (error) {
-          console.error("고정 아침 미션 조회 실패:", error);
-        }
-
-        setTodayMissions(
-          {
-            ...data,
-
-            morningMission,
-
-            eveningMission: data.eveningMission,
-          },
-
-          categoryByContent,
+        morningMission = missions.find(
+          (mission) => mission.missionTime === "MORNING",
         );
       } catch (error) {
-        console.error("오늘 미션 조회 실패:", error);
+        console.error("오늘 아침 미션 생성 실패:", error);
       }
-    };
+    }
 
-    fetchTodayMissions();
-  }, [setTodayMissions]);
+    const eveningMission = missions.find(
+      (mission) => mission.missionTime === "EVENING",
+    );
+
+    // 아침 고정 루틴 category 조회
+    let categoryByContent = {};
+
+    try {
+      categoryByContent = toCategoryByContent(await getMorningRoutine());
+    } catch (error) {
+      console.error("고정 아침 미션 조회 실패:", error);
+    }
+
+    setTodayMissions({ morningMission, eveningMission }, categoryByContent);
+  }, [accessToken, setTodayMissions]);
+
+  useEffect(() => {
+    fetchMissions().catch((error) => {
+      console.error("오늘 미션 조회 실패:", error);
+    });
+  }, [fetchMissions]);
 
   // 미션 옵션 조회
   useEffect(() => {
@@ -270,6 +275,8 @@ function Home() {
         nextMorning.length + nextEvening.length + (result.dailyBonusPoint ?? 0),
       );
     }
+
+    fetchMissions().catch(() => {});
   };
 
   const closeCelebration = useCallback(() => {
@@ -289,9 +296,9 @@ function Home() {
     setIsCreatingEvening(true);
 
     try {
-      const mission = await createEveningMission(selected);
+      await createEveningMission(selected);
 
-      setEveningMission(mission);
+      await fetchMissions();
 
       markEveningMissionsSet(formatApiDate());
     } catch (error) {
@@ -301,10 +308,21 @@ function Home() {
     }
   };
 
+  // 아침은 서버에 저장되므로 다시 조회해 stepId를 받아옴
   const handleConfirmMissions = () => {
-    applyMissionEdit(pendingMissionType, pendingMissions, recommendedMissions);
+    const missionType = pendingMissionType;
+
+    const missions = pendingMissions;
 
     clearPendingMissionSelection();
+
+    if (missionType === "morning") {
+      fetchMissions().catch(() => {});
+
+      return;
+    }
+
+    applyMissionEdit(missionType, missions, recommendedMissions);
   };
 
   const handleReselectCategory = () => {
