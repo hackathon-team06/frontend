@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import useOnboardingStore from "../../store/useOnboardingStore";
 import usePointStore from "../../store/usePointStore";
 import useUserStore from "../../store/useUserStore";
 
@@ -41,14 +40,6 @@ export default function MyPage() {
 
   const user = useUserStore((state) => state.user);
   const fetchUser = useUserStore((state) => state.fetchUser);
-
-  const nickname = useOnboardingStore((state) => state.nickname);
-
-  const age = useOnboardingStore((state) => state.age);
-
-  const skinType = useOnboardingStore((state) => state.skinType);
-
-  const purpose = useOnboardingStore((state) => state.purpose);
 
   const point = usePointStore((state) => state.point);
 
@@ -93,15 +84,7 @@ export default function MyPage() {
     fetchStampBooks();
   }, []);
 
-  const profileData = toProfile(user, {
-    nickname,
-
-    age,
-
-    skinType,
-
-    purpose,
-  });
+  const profileData = toProfile(user);
 
   const inProgressStampBook = stampBooks.find(
     (stampBook) => stampBook.status === "inProgress",

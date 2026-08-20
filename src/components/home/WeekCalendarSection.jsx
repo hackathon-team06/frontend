@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 
 import GoogleCalendar from "../../assets/icons/calendar_icon.svg";
 import DayItem from "./DayItem";
-import useGoogleCalendarStore from "../../store/useGoogleCalendarStore";
+import useUserStore from "../../store/useUserStore";
 import { getWeeklyMissionStatus } from "../../api/mission";
 import { formatApiDate, getDate } from "../../utils/getDate";
 
@@ -25,7 +25,9 @@ const buildEmptyWeek = (today) => {
 
 export default function WeekCalenderSection() {
   const navigate = useNavigate();
-  const isConnected = useGoogleCalendarStore((state) => state.isConnected);
+  const isConnected = useUserStore(
+    (state) => state.user?.googleCalendarConnected ?? false,
+  );
 
   // 렌더마다 바뀌지 않게 한 번만 잡음
   const [today] = useState(() => new Date());
