@@ -35,6 +35,52 @@ AI가 상황에 맞는 홈케어 미션을 제공하여 건강한 루틴을 부�
 | 📝 **일지 및 리포트** | 미션 달성률과 이전 일지 기록 및 내용을 확인할 수 있습니다. |
 | 🛍️ **맞춤 제품 추천** | 피부 타입과 최근 피부 상태를 기반으로 사용자에게 필요한 스킨케어 및 웰니스 제품을 추천합니다. |
 
+## 🛠 Tech Stack
+
+| 구분 | 기술 | 활용 |
+| :--- | :--- | :--- |
+| **Frontend** | React 19, JavaScript (ES6+), JSX | 컴포넌트 기반 SPA 개발 |
+| **Build Tool** | Vite 8 | 개발 서버 및 프로덕션 빌드 |
+| **Routing** | React Router DOM 7 | 페이지 라우팅 및 동적 경로 관리 |
+| **State Management** | Zustand 5, Persist Middleware | 인증, 사용자, 온보딩, 미션 및 포인트 상태 관리 |
+| **Styling** | Tailwind CSS 4, CSS3 | UI 스타일링, 디자인 토큰 및 애니메이션 |
+| **API** | Axios, REST API | 백엔드 통신, Bearer Token 인증 및 공통 인터셉터 처리 |
+| **External Service** | Google Calendar OAuth | 사용자 캘린더 연동 |
+| **Font** | Pretendard Variable, Google Fonts | 서비스 본문 및 로고 서체 적용 |
+| **Code Quality** | ESLint, Prettier | 코드 품질 및 포맷 관리 |
+| **Package Manager** | npm | 패키지 및 의존성 관리 |
+
+## 📁 Project Structure
+
+```text
+hackathon-team06/
+├── public/                  # 정적 파일 및 SPA 리다이렉트 설정
+├── src/
+│   ├── api/                 # Axios 인스턴스와 도메인별 API 요청
+│   ├── assets/
+│   │   ├── fonts/           # 서비스 폰트
+│   │   ├── icons/           # 공통 아이콘
+│   │   └── images/          # 캐릭터 및 화면 이미지
+│   ├── components/
+│   │   ├── common/          # 공통 컴포넌트
+│   │   ├── footer/          # 하단 내비게이션
+│   │   ├── home/            # 홈 및 미션 컴포넌트
+│   │   ├── mypage/          # 마이페이지 컴포넌트
+│   │   └── product/         # 상품 관련 컴포넌트
+│   ├── constants/           # 정적 데이터와 공통 상수
+│   ├── layout/              # 공통 페이지 레이아웃
+│   ├── pages/               # 라우트별 페이지 컴포넌트
+│   ├── store/               # Zustand 전역 상태 관리
+│   ├── utils/               # 날짜, 미션, 사용자 유틸리티
+│   ├── App.jsx              # 애플리케이션 라우팅
+│   ├── index.css            # 전역 스타일 및 디자인 토큰
+│   └── main.jsx             # React 애플리케이션 진입점
+├── eslint.config.js         # ESLint 설정
+├── vite.config.js           # Vite 및 Tailwind CSS 설정
+├── package.json             # 프로젝트 스크립트와 의존성
+└── README.md                # 프로젝트 문서
+```
+
 ## 👥 팀원
 
 <p>
@@ -83,4 +129,4 @@ AI가 상황에 맞는 홈케어 미션을 제공하여 건강한 루틴을 부�
 4. `develop` 브랜치로 Pull Request 생성
 5. 코드 리뷰 진행
 6. 리뷰 완료 후 `develop` 브랜치로 병합
-7. 병합 완료 후 작업 브랜치 삭제 
+7. 병합 완료 후 작업 브랜치 삭제
