@@ -18,6 +18,7 @@ import CelebrationOverlay from "../../components/common/CelebrationOverlay";
 import useGoogleCalendarStore from "../../store/useGoogleCalendarStore";
 import useLayoutStore from "../../store/useLayoutStore";
 import useMissionStore from "../../store/useMissionStore";
+import useUserStore from "../../store/useUserStore";
 import usePointStore from "../../store/usePointStore";
 
 import {
@@ -44,6 +45,10 @@ function Home() {
     (state) => state.clearJustConnected,
   );
 
+  const user = useUserStore((state) => state.user);
+
+  const fetchUser = useUserStore((state) => state.fetchUser);
+
   const [showOverlay, setShowOverlay] = useState(
     () =>
       useGoogleCalendarStore.getState().justConnected ||
@@ -57,6 +62,7 @@ function Home() {
 
     if (result === "connected") {
       connect();
+      fetchUser().catch(() => {});
     }
 
     setSearchParams(
@@ -65,7 +71,13 @@ function Home() {
         replace: true,
       },
     );
-  }, [searchParams, setSearchParams, connect]);
+  }, [searchParams, setSearchParams, connect, fetchUser]);
+
+  useEffect(() => {
+    if (user) return;
+
+    fetchUser().catch(() => {});
+  }, [user, fetchUser]);
 
   useEffect(() => {
     clearJustConnected();
