@@ -7,6 +7,7 @@ import StampProgressBtn from "../../components/home/StampProgressBtn";
 import { getSchedulesByDate } from "../../api/schedule";
 import useAuthStore from "../../store/useAuthStore";
 import useOnboardingStore from "../../store/useOnboardingStore";
+import { getUserIdFromToken } from "../../utils/token";
 
 import map7 from "../../assets/images/map7.svg";
 import map14 from "../../assets/images/map14.svg";
@@ -32,15 +33,19 @@ const STAMP_PERIOD_CONFIGS = {
     mapWidth: 370,
     mapMarginTop: 0,
 
-    stampPositions: [
-      "top-[135px] left-[95px]",
-      "top-[30px] left-[45px]",
-      "top-[30px] left-[190px]",
-    ],
+    stampPositions: ["top-[30px] left-[190px]"],
 
-    goClassName: "top-[170px] left-[230px]",
+    goClassName: "top-[30px] left-[45px]",
 
     periodNumbers: [
+      {
+        number: 3,
+        className: "top-[135px] left-[95px]",
+      },
+      {
+        number: 4,
+        className: "top-[170px] left-[230px]",
+      },
       {
         number: 5,
         className: "top-[265px] left-[200px]",
@@ -62,15 +67,19 @@ const STAMP_PERIOD_CONFIGS = {
     mapHeight: 530,
     mapMarginTop: 52,
 
-    stampPositions: [
-      "-top-[22px] left-[40px]",
-      "-top-[22px] left-[145px]",
-      "-top-[22px] left-[245px]",
-    ],
+    stampPositions: ["-top-[22px] left-[40px]"],
 
-    goClassName: "top-[65px] left-[195px]",
+    goClassName: "-top-[22px] left-[145px]",
 
     periodNumbers: [
+      {
+        number: 3,
+        className: "-top-[22px] left-[245px]",
+      },
+      {
+        number: 4,
+        className: "top-[65px] left-[195px]",
+      },
       {
         number: 5,
         className: "top-[65px] left-[90px]",
@@ -120,15 +129,19 @@ const STAMP_PERIOD_CONFIGS = {
     mapWidth: 370,
     mapMarginTop: 52,
 
-    stampPositions: [
-      "-top-[10px] left-[30px]",
-      "-top-[10px] left-[130px]",
-      "-top-[10px] left-[230px]",
-    ],
+    stampPositions: ["-top-[10px] left-[30px]"],
 
-    goClassName: "top-[73px] left-[285px]",
+    goClassName: "-top-[10px] left-[130px]",
 
     periodNumbers: [
+      {
+        number: 3,
+        className: "-top-[10px] left-[230px]",
+      },
+      {
+        number: 4,
+        className: "top-[73px] left-[285px]",
+      },
       {
         number: 5,
         className: "top-[85px] left-[180px]",
@@ -204,16 +217,21 @@ const STAMP_PERIOD_CONFIGS = {
 
     mapHeight: 900,
     mapWidth: 370,
+    mapMarginTop: 20,
 
-    stampPositions: [
-      "top-[5px] left-[30px]",
-      "top-[5px] left-[130px]",
-      "top-[5px] left-[230px]",
-    ],
+    stampPositions: ["top-[5px] left-[30px]"],
 
-    goClassName: "top-[90px] left-[270px]",
+    goClassName: "top-[5px] left-[130px]",
 
     periodNumbers: [
+      {
+        number: 3,
+        className: "top-[5px] left-[230px]",
+      },
+      {
+        number: 4,
+        className: "top-[90px] left-[270px]",
+      },
       {
         number: 5,
         className: "top-[90px] left-[175px]",
@@ -331,20 +349,6 @@ const categoryLabelMap = {
   EVENT: "이벤트",
   TALK: "친목/수다",
   CEREMONY: "행사",
-};
-
-const getUserIdFromToken = (accessToken) => {
-  if (!accessToken) return null;
-
-  try {
-    const payload = accessToken.split(".")[1];
-    const decodedPayload = JSON.parse(atob(payload));
-
-    return Number(decodedPayload.sub);
-  } catch (error) {
-    console.error("사용자 ID 확인 실패:", error);
-    return null;
-  }
 };
 
 const hasFinalConsonant = (word) => {
@@ -476,15 +480,45 @@ export default function Stamp() {
   const periodConfig =
     STAMP_PERIOD_CONFIGS[selectedPeriod] || STAMP_PERIOD_CONFIGS[7];
 
-  // 현재 UI에서 GO는 4일차를 의미
-  const currentGoDay = 4;
+  const remainingDays = Math.max(selectedPeriod - 1, 0);
 
-  // GO 기준으로 목표일까지 남은 일수 계산
-  // 7일 주기 → D-4
-  // 14일 주기 → D-11
-  // 21일 주기 → D-18
-  // 28일 주기 → D-25
-  const displayDDay = `D-${Math.max(selectedPeriod - currentGoDay + 1, 0)}`;
+  const displayDDay = remainingDays === 0 ? "D-DAY" : `D-${remainingDays}`;
+
+  useEffect(() => {
+    const fetchStampCountdown = async () => {
+      try {
+        const response = await api.get("/api/stamps/books/countdown");
+
+        console.log("스탬프 카운트다운 조회:", response.data);
+
+        const body = response.data;
+        const value = body?.data ?? body;
+
+        const remainingDays =
+          typeof value === "number"
+            ? value
+            : (value?.countdown ??
+              value?.daysRemaining ??
+              value?.remainingDays ??
+              value?.dDay ??
+              null);
+
+        if (remainingDays === null || Number.isNaN(Number(remainingDays))) {
+          console.error("스탬프 카운트다운 응답 형식을 확인해주세요:", body);
+          return;
+        }
+
+        setCountdown(Number(remainingDays));
+      } catch (error) {
+        console.error(
+          "스탬프 종료일 카운트다운 조회 실패:",
+          error.response?.data ?? error,
+        );
+      }
+    };
+
+    fetchStampCountdown();
+  }, []);
 
   useEffect(() => {
     const fetchSchedules = async () => {

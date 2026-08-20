@@ -3,13 +3,17 @@ import { useLocation, useNavigate } from "react-router-dom";
 import MissionNavBar from "../../components/home/MissionNavBar";
 import MissionSection from "../../components/home/MissionSection";
 import MissionCategorySection from "../../components/home/MissionCategorySection";
-import { recommendedMissionData } from "../../constants/home/recommendedMissionData";
 import useMissionStore from "../../store/useMissionStore";
 import {
+  addEveningMissionSteps,
+  deleteEveningMissionStep,
   deleteMorningRoutineItem,
+  getEveningMissionRecommendations,
   getMorningRoutine,
+  getMorningRoutineRecommendations,
   saveMorningRoutine,
 } from "../../api/mission";
+import { guessIconFromContent } from "../../utils/missionIcon";
 
 import backButton from "../../assets/images/back_button.svg";
 
@@ -121,74 +125,29 @@ export default function MissionEdit() {
     );
   };
 
-  const getRandomMissions = (missions, count) => {
-    const shuffled = [...missions].sort(() => Math.random() - 0.5);
-
-    return shuffled.slice(0, count);
-  };
-
-  // 이미 목록에 있거나 방금 뽑은 미션은 후보에서 제외
-  const getMissionPool = (categoryKey, pickedMissions = []) => {
-    const pool = recommendedMissionData[categoryKey] ?? [];
-
-    const usedTitles = [
-      ...currentMissions.map((mission) => mission.title),
-      ...pickedMissions.map((mission) => mission.title),
-    ];
-
-    return pool.filter((mission) => !usedTitles.includes(mission.title));
-  };
-
-  const getRecommendedMissions = () => {
+  // 선택한 카테고리로 서버에서 미션을 추천받아 지운 개수만큼 사용
+  const getRecommendedMissions = async () => {
     if (selectedCategories.length === 0 || currentRemovedCount === 0) {
       return [];
     }
 
-    // 카테고리 1개 선택
-    if (selectedCategories.length === 1) {
-      const missions = getMissionPool(selectedCategories[0]);
+    const data =
+      activeTab === "morning"
+        ? await getMorningRoutineRecommendations(selectedCategories)
+        : await getEveningMissionRecommendations(selectedCategories);
 
-      return getRandomMissions(missions, currentRemovedCount);
-    }
+    const usedTitles = currentMissions
+      .filter((mission) => !mission.removed)
+      .map((mission) => mission.title);
 
-    // 카테고리 2개 선택
-    const firstMissions = getMissionPool(selectedCategories[0]);
-
-    // 1개 추천
-    if (currentRemovedCount === 1) {
-      const selectedPool =
-        Math.random() < 0.5
-          ? firstMissions
-          : getMissionPool(selectedCategories[1]);
-
-      return getRandomMissions(selectedPool, 1);
-    }
-
-    // 2개 추천
-    if (currentRemovedCount === 2) {
-      const firstPicked = getRandomMissions(firstMissions, 1);
-
-      return [
-        ...firstPicked,
-        ...getRandomMissions(
-          getMissionPool(selectedCategories[1], firstPicked),
-          1,
-        ),
-      ];
-    }
-
-    // 3개 추천
-    const firstGetsTwo = Math.random() < 0.5;
-
-    const firstPicked = getRandomMissions(firstMissions, firstGetsTwo ? 2 : 1);
-
-    return [
-      ...firstPicked,
-      ...getRandomMissions(
-        getMissionPool(selectedCategories[1], firstPicked),
-        firstGetsTwo ? 1 : 2,
-      ),
-    ];
+    return (data?.recommendations ?? [])
+      .filter((content) => !usedTitles.includes(content))
+      .slice(0, currentRemovedCount)
+      .map((content) => ({
+        id: content,
+        icon: guessIconFromContent(content),
+        title: content,
+      }));
   };
 
   const handleAddClick = async () => {
@@ -225,19 +184,74 @@ export default function MissionEdit() {
   };
 
   const handleMissionProgress = async () => {
-    const newRecommendedMissions = getRecommendedMissions();
+    let newRecommendedMissions;
+
+    try {
+      newRecommendedMissions = await getRecommendedMissions();
+    } catch (error) {
+      console.error("미션 추천 실패:", error);
+
+      setDeleteError("미션을 추천받지 못했어요. 잠시 후 다시 시도해주세요.");
+
+      return;
+    }
 
     if (activeTab === "morning") {
       try {
-        const items = newRecommendedMissions.map((mission) => ({
-          content: mission.title,
-          category: mission.category ?? null,
-          source: mission.source ?? "CUSTOM",
-        }));
+        const keptMissions = currentMissions.filter(
+          (mission) => !mission.removed,
+        );
+
+        const finalMorningMissions = [
+          ...keptMissions,
+          ...newRecommendedMissions,
+        ].slice(0, 3);
+
+        const currentRoutine = await getMorningRoutine();
+
+        const routineItemByContent = Object.fromEntries(
+          (currentRoutine?.items ?? []).map((item) => [item.content, item]),
+        );
+
+        const items = finalMorningMissions.map((mission) => {
+          const existingItem = routineItemByContent[mission.title];
+
+          return {
+            content: mission.title,
+            category: existingItem?.category ?? mission.category ?? null,
+            source: existingItem?.source ?? mission.source ?? "CUSTOM",
+          };
+        });
 
         await saveMorningRoutine(items);
       } catch (error) {
         console.error("아침 미션 수정 저장 실패:", error);
+
+        setDeleteError(
+          "수정한 미션을 저장하지 못했어요. 잠시 후 다시 시도해주세요.",
+        );
+
+        return;
+      }
+    }
+
+    if (activeTab === "evening") {
+      try {
+        const removedMissions = currentMissions.filter(
+          (mission) => mission.removed,
+        );
+
+        for (const mission of removedMissions) {
+          await deleteEveningMissionStep(mission.id);
+        }
+
+        const steps = newRecommendedMissions.map((mission) => mission.title);
+
+        if (steps.length > 0) {
+          await addEveningMissionSteps(steps);
+        }
+      } catch (error) {
+        console.error("저녁 미션 수정 저장 실패:", error);
 
         setDeleteError(
           "수정한 미션을 저장하지 못했어요. 잠시 후 다시 시도해주세요.",
