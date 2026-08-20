@@ -1,7 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-import useOnboardingStore from "../../store/useOnboardingStore";
 import usePointStore from "../../store/usePointStore";
 import useUserStore from "../../store/useUserStore";
 
@@ -44,22 +43,6 @@ export default function MyPage() {
 
   const user = useUserStore((state) => state.user);
   const fetchUser = useUserStore((state) => state.fetchUser);
-
-  const nickname = useOnboardingStore(
-    (state) => state.nickname,
-  );
-
-  const age = useOnboardingStore(
-    (state) => state.age,
-  );
-
-  const skinType = useOnboardingStore(
-    (state) => state.skinType,
-  );
-
-  const purpose = useOnboardingStore(
-    (state) => state.purpose,
-  );
 
   const point = usePointStore(
     (state) => state.point,
@@ -123,12 +106,7 @@ export default function MyPage() {
     fetchStampBooks();
   }, []);
 
-  const profile = toProfile(user, {
-    nickname,
-    age,
-    skinType,
-    purpose,
-  });
+  const profile = toProfile(user);
 
   return (
     <div className="flex min-h-full flex-col bg-[#eff7f7] pb-[24px]">
