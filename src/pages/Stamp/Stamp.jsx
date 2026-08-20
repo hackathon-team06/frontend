@@ -5,7 +5,6 @@ import WeatherTipSection from "../../components/home/WeatherTipSection";
 import WeekCalenderSection from "../../components/home/WeekCalendarSection";
 import StampProgressBtn from "../../components/home/StampProgressBtn";
 import { getSchedulesByDate } from "../../api/schedule";
-import { getStampCountdown } from "../../api/stamp";
 import useAuthStore from "../../store/useAuthStore";
 import useOnboardingStore from "../../store/useOnboardingStore";
 
@@ -469,11 +468,10 @@ export default function Stamp() {
 
   const onboardingPeriod = useOnboardingStore((state) => state.routine);
 
-  const [countdown, setCountdown] = useState(null);
   const [schedules, setSchedules] = useState([]);
 
-  // API에서 받은 실제 스탬프북 주기를 우선 사용
-  const selectedPeriod = countdown?.periodDays || onboardingPeriod || 7;
+  // 온보딩에서 사용자가 선택한 주기를 그대로 사용
+  const selectedPeriod = onboardingPeriod || 7;
 
   const periodConfig =
     STAMP_PERIOD_CONFIGS[selectedPeriod] || STAMP_PERIOD_CONFIGS[7];
@@ -486,26 +484,7 @@ export default function Stamp() {
   // 14일 주기 → D-11
   // 21일 주기 → D-18
   // 28일 주기 → D-25
-  const displayDDay = `D-${Math.max(
-    selectedPeriod - currentGoDay + 1,
-    0,
-  )}`;
-
-  useEffect(() => {
-    const fetchCountdown = async () => {
-      try {
-        const data = await getStampCountdown();
-
-        setCountdown(data);
-      } catch (error) {
-        console.error("스탬프 디데이 조회 실패:", error);
-      }
-    };
-
-    if (accessToken) {
-      fetchCountdown();
-    }
-  }, [accessToken]);
+  const displayDDay = `D-${Math.max(selectedPeriod - currentGoDay + 1, 0)}`;
 
   useEffect(() => {
     const fetchSchedules = async () => {
@@ -557,10 +536,7 @@ export default function Stamp() {
                 date: targetDate.getDate(),
               };
             } catch (error) {
-              console.error(
-                `${formatDate(targetDate)} 일정 조회 실패:`,
-                error,
-              );
+              console.error(`${formatDate(targetDate)} 일정 조회 실패:`, error);
 
               return null;
             }
@@ -656,9 +632,7 @@ export default function Stamp() {
               number={item.number}
               className={item.className}
               schedule={registeredSchedule}
-              onClick={() =>
-                handlePeriodClick(item.number, registeredSchedule)
-              }
+              onClick={() => handlePeriodClick(item.number, registeredSchedule)}
             />
           );
         })}
