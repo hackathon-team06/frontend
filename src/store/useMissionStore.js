@@ -46,44 +46,6 @@ const convertTodayMission = (
   );
 };
 
-// 제거한 자리에 추천 미션 채우기
-const replaceRemovedMissions = (
-  missions,
-  recommendedMissions,
-) => {
-  let recommendedIndex = 0;
-
-  return missions.map((mission) => {
-    if (!mission.removed) {
-      return mission;
-    }
-
-    const recommended =
-      recommendedMissions[
-        recommendedIndex
-      ];
-
-    recommendedIndex += 1;
-
-    if (!recommended) {
-      return {
-        ...mission,
-        removed: false,
-      };
-    }
-
-    return {
-      id: recommended.id,
-      icon: recommended.icon,
-      title: recommended.title,
-      subtitle: "",
-      point: mission.point,
-      completed: false,
-      removed: false,
-    };
-  });
-};
-
 const useMissionStore = create(
   persist(
     (set) => ({
@@ -151,19 +113,6 @@ const useMissionStore = create(
       ) =>
         set({
           eveningSetDate: dateKey,
-        }),
-
-      applyMissionEdit: (
-        missionType,
-        missions,
-        recommendedMissions,
-      ) =>
-        set({
-          [getMissionKey(missionType)]:
-            replaceRemovedMissions(
-              missions,
-              recommendedMissions,
-            ),
         }),
 
       setPendingMissionSelection: (

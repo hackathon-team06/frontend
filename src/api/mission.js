@@ -73,6 +73,27 @@ export const createEveningMission = async (conditions) => {
   return response.data;
 };
 
+// 저녁 미션 카테고리 기반 AI 재추천
+export const getEveningMissionRecommendations = async (categories = []) => {
+  const response = await api.post("/api/missions/evening/recommendations", {
+    categories,
+  });
+
+  return response.data;
+};
+
+// 저녁 미션 step 삭제
+export const deleteEveningMissionStep = async (stepId) => {
+  const response = await api.delete(`/api/missions/evening/steps/${stepId}`);
+  return response.data;
+};
+
+// 저녁 미션 step 추가
+export const addEveningMissionSteps = async (steps) => {
+  const response = await api.post("/api/missions/evening/steps", { steps });
+  return response.data;
+};
+
 // 미션 step 완료 처리
 export const completeMissionStep = async (stepId) => {
   const response = await api.patch(`/api/missions/steps/${stepId}`);
