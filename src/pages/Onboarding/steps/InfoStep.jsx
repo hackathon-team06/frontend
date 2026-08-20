@@ -30,7 +30,7 @@ export default function InfoStep({ onNext }) {
   const setSelectedAge = useOnboardingStore((state) => state.setAge);
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col pt-[50px]">
       {/* 건너뛰기 + 진행바 */}
       <header>
         <OnboardingStatus />
