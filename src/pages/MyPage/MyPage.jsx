@@ -28,10 +28,7 @@ const normalizeStampBook = (stampBook, index) => ({
       ? `${stampBook.periodDays}DAY`
       : stampBook.displayText,
 
-  status:
-    stampBook.status === "COMPLETED"
-      ? "done"
-      : "inProgress",
+  status: stampBook.status === "COMPLETED" ? "done" : "inProgress",
 
   startDate: stampBook.startDate,
   endDate: stampBook.endDate,
@@ -45,36 +42,21 @@ export default function MyPage() {
   const user = useUserStore((state) => state.user);
   const fetchUser = useUserStore((state) => state.fetchUser);
 
-  const nickname = useOnboardingStore(
-    (state) => state.nickname,
-  );
+  const nickname = useOnboardingStore((state) => state.nickname);
 
-  const age = useOnboardingStore(
-    (state) => state.age,
-  );
+  const age = useOnboardingStore((state) => state.age);
 
-  const skinType = useOnboardingStore(
-    (state) => state.skinType,
-  );
+  const skinType = useOnboardingStore((state) => state.skinType);
 
-  const purpose = useOnboardingStore(
-    (state) => state.purpose,
-  );
+  const purpose = useOnboardingStore((state) => state.purpose);
 
-  const point = usePointStore(
-    (state) => state.point,
-  );
+  const point = usePointStore((state) => state.point);
 
-  const fetchPoint = usePointStore(
-    (state) => state.fetchPoint,
-  );
+  const fetchPoint = usePointStore((state) => state.fetchPoint);
 
   const [stampBooks, setStampBooks] = useState([]);
 
-  const [
-    completedStampBookCount,
-    setCompletedStampBookCount,
-  ] = useState(0);
+  const [completedStampBookCount, setCompletedStampBookCount] = useState(0);
 
   useEffect(() => {
     if (user) return;
@@ -91,29 +73,17 @@ export default function MyPage() {
       try {
         const data = await getStampBooks();
 
-        console.log(
-          "스탬프북 카드 조회:",
-          data,
-        );
+        console.log("스탬프북 카드 조회:", data);
 
-        setCompletedStampBookCount(
-          data.completedStampBookCount ?? 0,
-        );
+        setCompletedStampBookCount(data.completedStampBookCount ?? 0);
 
         setStampBooks(
-          (data.stampBooks ?? []).map(
-            (stampBook, index) =>
-              normalizeStampBook(
-                stampBook,
-                index,
-              ),
+          (data.stampBooks ?? []).map((stampBook, index) =>
+            normalizeStampBook(stampBook, index),
           ),
         );
       } catch (error) {
-        console.error(
-          "스탬프북 카드 조회 실패:",
-          error,
-        );
+        console.error("스탬프북 카드 조회 실패:", error);
 
         setCompletedStampBookCount(0);
         setStampBooks([]);
@@ -123,12 +93,26 @@ export default function MyPage() {
     fetchStampBooks();
   }, []);
 
-  const profile = toProfile(user, {
+  const profileData = toProfile(user, {
     nickname,
+
     age,
+
     skinType,
+
     purpose,
   });
+
+  const inProgressStampBook = stampBooks.find(
+    (stampBook) => stampBook.status === "inProgress",
+  );
+
+  const profile = {
+    ...profileData,
+
+    progressDay:
+      inProgressStampBook?.progressDays ?? profileData.progressDay ?? 0,
+  };
 
   return (
     <div className="flex min-h-full flex-col bg-[#eff7f7] pb-[24px]">
@@ -139,19 +123,12 @@ export default function MyPage() {
       <div className="mt-[65px] px-[19px]">
         <ProfileCard
           profile={profile}
-          onEditNickname={() =>
-            navigate("/mypage/nickname")
-          }
+          onEditNickname={() => navigate("/mypage/nickname")}
         />
       </div>
 
       <div className="mt-[14px] px-[19px]">
-        <PointCard
-          point={point}
-          onGoToProduct={() =>
-            navigate("/product")
-          }
-        />
+        <PointCard point={point} onGoToProduct={() => navigate("/product")} />
       </div>
 
       <h2 className="mt-[29px] px-[19px] text-[16px] font-semibold text-black">
@@ -163,11 +140,7 @@ export default function MyPage() {
           <li key={stamp.id}>
             <StampCard
               stamp={stamp}
-              onClick={() =>
-                navigate(
-                  `/mypage/stamp/${stamp.id}`,
-                )
-              }
+              onClick={() => navigate(`/mypage/stamp/${stamp.id}`)}
             />
           </li>
         ))}
