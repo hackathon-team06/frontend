@@ -136,18 +136,12 @@ export default function MissionEdit() {
         ? await getMorningRoutineRecommendations(selectedCategories)
         : await getEveningMissionRecommendations(selectedCategories);
 
-    const usedTitles = currentMissions
-      .filter((mission) => !mission.removed)
-      .map((mission) => mission.title);
-
-    return (data?.recommendations ?? [])
-      .filter((content) => !usedTitles.includes(content))
-      .slice(0, currentRemovedCount)
-      .map((content) => ({
-        id: content,
-        icon: guessIconFromContent(content),
-        title: content,
-      }));
+    // 서버가 빈 자리 수만큼 내려주므로 받은 개수를 그대로 사용
+    return (data?.recommendations ?? []).map((content) => ({
+      id: content,
+      icon: guessIconFromContent(content),
+      title: content,
+    }));
   };
 
   const handleAddClick = async () => {
